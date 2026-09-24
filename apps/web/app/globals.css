@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/*
+ * Neutral base tokens. Client-facing pages will take each shop's brand
+ * colors later; these are the defaults.
+ */
+@theme {
+  --color-ink: oklch(0.2 0.01 60);
+  --color-muted: oklch(0.5 0.01 60);
+  --color-line: oklch(0.9 0.005 60);
+  --color-surface: oklch(0.985 0.003 80);
+  --color-card: oklch(1 0 0);
+  --color-accent: oklch(0.55 0.15 30);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}

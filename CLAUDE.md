@@ -10,7 +10,7 @@ Architecture follows the MAD Stack shape, but this is its own product.
 
 | Layer                  | Choice                                                       |
 | ---------------------- | ------------------------------------------------------------ |
-| Web app, booking pages | Next.js App Router, tRPC v11, Tailwind v4 (not started)      |
+| Web app, booking pages | Next.js 16 App Router, tRPC v11, Tailwind v4 (`apps/web`)    |
 | Barber app             | Expo (not started)                                           |
 | Shop websites          | Astro, multi-tenant templates (not started)                  |
 | Database and auth      | Supabase Postgres + Auth, Supabase client SDK, no ORM        |
@@ -22,7 +22,12 @@ Architecture follows the MAD Stack shape, but this is its own product.
 ## Layout
 
 ```
-apps/                    # web, barber, sites (not started yet)
+apps/web/                # Next.js: booking pages + the tRPC booking API
+  trpc/init.ts           # context + procedure levels (public → authed → shop → manager)
+  trpc/routers/          # booking (public), appointments + me (staff)
+  lib/booking/           # server-side booking context + pure helpers (tested)
+  lib/supabase/          # user client (RLS), admin client (secret key), browser client
+  proxy.ts               # refreshes Supabase auth cookies (Next 16's renamed middleware)
 packages/scheduling/     # availability engine: pure TS, no I/O
 packages/db/             # generated Supabase types + database test suite
 supabase/migrations/     # append-only SQL, timestamped (YYYYMMDDHHMMSS_name.sql)
@@ -59,6 +64,23 @@ supabase/seed.sql        # local demo shop
   resolved in the shop's IANA timezone. Test DST changes for anything
   involving time.
 
+## Web app and API
+
+- tRPC procedure levels in `apps/web/trpc/init.ts`: `publicProcedure` (anyone),
+  `authedProcedure` (signed-in staff; `ctx.supabase` runs under RLS),
+  `shopProcedure` (active member of `input.shopId`), `managerProcedure`
+  (owner or manager).
+- Public booking procedures use `adminClient()`, which bypasses RLS. They must
+  validate everything themselves and never return more than the public needs.
+- Wrap Supabase results in `unwrap()`, which maps `LU*` codes to tRPC errors
+  (`LU404` → NOT_FOUND, `LU409` → CONFLICT, `LU410` → PRECONDITION_FAILED,
+  `LU422` → BAD_REQUEST).
+- Booking flow: `booking.availability` → `booking.hold` (10-minute hold,
+  re-checked with `isSlotAvailable`) → `booking.confirm` (matches returning
+  clients by phone).
+- Next 16: request APIs (`params`, `cookies()`) are async, and middleware is
+  `proxy.ts`. Next's docs ship in `node_modules/next/dist/docs/`.
+
 ## Tenancy and security
 
 - The tenant is `shop_id`. A solo barber is a shop on the `solo` plan with one
@@ -90,14 +112,17 @@ supabase/seed.sql        # local demo shop
 Hosted project `lineup-app` (ref `njrnucsrbxwtomnhcavs`, Postgres 17). Every
 migration in `supabase/migrations` has been applied to it, and the Supabase
 security advisor reports no issues. `.mcp.json` configures the Supabase MCP
-server for this project. Copy `.env.example` to `.env.local` for app keys;
-never commit secrets.
+server for this project. Copy `apps/web/.env.example` to
+`apps/web/.env.local` and add the secret key; never commit secrets. The
+hosted project has the seed's demo shop, "Southside Cuts" (`/book/southside-cuts`).
 
 ## Commands
 
 ```bash
 pnpm install
+pnpm dev             # web app on http://localhost:3000
 pnpm typecheck
+pnpm lint
 pnpm test            # needs Postgres 15+ with btree_gist; see DATABASE_URL below
 pnpm format
 pnpm db:types              # regenerate packages/db/src/database.types.ts (needs `supabase login`)

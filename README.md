@@ -23,7 +23,12 @@ This first slice sets up the foundation the plan asks for before any UI:
 The schema is live on the hosted Supabase project, and typed access is
 available from `@lineup/db`.
 
-Next up: the Next.js app with the tRPC booking API, then the public booking page.
+The web app (`apps/web`) has the tRPC booking API: check availability, hold a
+slot, confirm with the client's details, and mark a booking paid in cash. A
+first booking page shows a shop's barbers and menu at `/book/<shop-slug>`.
+
+Next up: the interactive booking flow (pick a service, barber and time, then
+check out).
 
 ## Getting started
 
@@ -31,6 +36,8 @@ Requirements: Node 22+, pnpm 10, and Postgres 15+ for the database tests.
 
 ```bash
 pnpm install
+cp apps/web/.env.example apps/web/.env.local   # then add SUPABASE_SECRET_KEY
+pnpm dev                                       # http://localhost:3000/book/southside-cuts
 pnpm typecheck
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres pnpm test
 ```

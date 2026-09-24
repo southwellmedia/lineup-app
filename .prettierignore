@@ -1,2 +1,4 @@
 pnpm-lock.yaml
 supabase/migrations/
+.next/
+next-env.d.ts
