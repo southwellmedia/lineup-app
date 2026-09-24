@@ -1,21 +1,75 @@
 @import "tailwindcss";
 
 /*
- * Neutral base tokens. Client-facing pages will take each shop's brand
- * colors later; these are the defaults.
+ * Barbershop signage on warm paper. `--brand` is the one accent; each shop
+ * will override it with its own color, so every client-facing accent must
+ * use brand/brand-ink rather than a fixed hue.
  */
 @theme {
-  --color-ink: oklch(0.2 0.01 60);
-  --color-muted: oklch(0.5 0.01 60);
-  --color-line: oklch(0.9 0.005 60);
-  --color-surface: oklch(0.985 0.003 80);
-  --color-card: oklch(1 0 0);
-  --color-accent: oklch(0.55 0.15 30);
+  --color-paper: oklch(0.965 0.012 85);
+  --color-card: oklch(0.99 0.006 85);
+  --color-ink: oklch(0.19 0.012 60);
+  --color-muted: oklch(0.48 0.015 60);
+  --color-line: oklch(0.87 0.012 80);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-danger: oklch(0.52 0.19 28);
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), Georgia, serif;
+
+  --animate-rise: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-pole: pole 1.6s linear infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pole {
+    to {
+      background-position: 28px 0;
+    }
+  }
+}
+
+:root {
+  /* Default shop brand: barber-pole red. */
+  --brand: oklch(0.53 0.18 27);
+  --brand-ink: oklch(0.99 0.005 85);
 }
 
 body {
-  background: var(--color-surface);
+  background-color: var(--color-paper);
   color: var(--color-ink);
+  /* Faint paper grain. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+}
+
+/* Barber-pole stripe: used for progress and loading. */
+@utility pole {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-brand) 0 7px,
+    var(--color-card) 7px 14px,
+    var(--color-ink) 14px 21px,
+    var(--color-card) 21px 28px
+  );
+  background-size: 28px 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

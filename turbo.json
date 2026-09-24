@@ -15,7 +15,7 @@
     },
     "test": {
       "env": ["DATABASE_URL"],
-      "inputs": ["src/**", "test/**", "../../supabase/migrations/**"]
+      "inputs": ["$TURBO_DEFAULT$", "../../supabase/migrations/**", "../../supabase/seed.sql"]
     }
   }
 }
