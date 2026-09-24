@@ -12,7 +12,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:types": "pnpm --filter @lineup/db types"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

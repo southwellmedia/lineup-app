@@ -109,6 +109,7 @@ CREATE TRIGGER appointments_set_updated_at
 CREATE FUNCTION public.guard_appointment_status()
 RETURNS trigger
 LANGUAGE plpgsql
+SET search_path = ''
 AS $$
 BEGIN
   IF OLD.status IN ('cancelled', 'expired') AND NEW.status IS DISTINCT FROM OLD.status THEN

@@ -24,8 +24,8 @@ Architecture follows the MAD Stack shape, but this is its own product.
 ```
 apps/                    # web, barber, sites (not started yet)
 packages/scheduling/     # availability engine: pure TS, no I/O
-packages/db/             # database test suite (and generated types, later)
-supabase/migrations/     # append-only SQL, 00001_ numbering
+packages/db/             # generated Supabase types + database test suite
+supabase/migrations/     # append-only SQL, timestamped (YYYYMMDDHHMMSS_name.sql)
 supabase/seed.sql        # local demo shop
 ```
 
@@ -85,6 +85,14 @@ supabase/seed.sql        # local demo shop
 | `LU410` | Hold expired                                                    |
 | `LU422` | Invalid request or state transition                             |
 
+## Supabase project
+
+Hosted project `lineup-app` (ref `njrnucsrbxwtomnhcavs`, Postgres 17). Every
+migration in `supabase/migrations` has been applied to it, and the Supabase
+security advisor reports no issues. `.mcp.json` configures the Supabase MCP
+server for this project. Copy `.env.example` to `.env.local` for app keys;
+never commit secrets.
+
 ## Commands
 
 ```bash
@@ -92,6 +100,7 @@ pnpm install
 pnpm typecheck
 pnpm test            # needs Postgres 15+ with btree_gist; see DATABASE_URL below
 pnpm format
+pnpm db:types              # regenerate packages/db/src/database.types.ts (needs `supabase login`)
 pnpm exec supabase start   # full local Supabase (needs Docker)
 ```
 
@@ -103,7 +112,10 @@ Postgres, `packages/db/test/supabase-shim.sql` provides `auth.users`,
 
 ## Conventions
 
-- Migrations are append-only. Never edit one after it's merged; add a new file.
+- Migrations are append-only. Never edit one that has been applied to the
+  hosted project; add a new file. Name new files with `supabase migration new
+<name>` so versions match what Supabase records. After a schema change, run
+  `pnpm db:types` and commit the regenerated types.
 - Commits use `type(scope): description` (`feat`, `fix`, `refactor`, `chore`,
   `docs`, `test`).
 - TypeScript is strict with `noUncheckedIndexedAccess`. No `any`.

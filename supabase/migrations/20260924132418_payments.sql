@@ -74,6 +74,7 @@ CREATE UNIQUE INDEX payments_stripe_intent_uniq
 CREATE FUNCTION public.prevent_payment_mutation()
 RETURNS trigger
 LANGUAGE plpgsql
+SET search_path = ''
 AS $$
 BEGIN
   RAISE EXCEPTION 'payments are immutable; record a refund or correction instead'

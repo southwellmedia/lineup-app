@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "types": "supabase gen types typescript --project-id njrnucsrbxwtomnhcavs --schema public > src/database.types.ts && prettier --write src/database.types.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

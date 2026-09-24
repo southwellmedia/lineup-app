@@ -20,6 +20,9 @@ This first slice sets up the foundation the plan asks for before any UI:
   bookings and time off into bookable slots, and handles daylight-saving
   changes correctly.
 
+The schema is live on the hosted Supabase project, and typed access is
+available from `@lineup/db`.
+
 Next up: the Next.js app with the tRPC booking API, then the public booking page.
 
 ## Getting started
