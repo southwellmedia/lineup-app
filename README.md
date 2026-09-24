@@ -34,6 +34,8 @@ The web app (`apps/web`) has:
   - **Services:** menu, add-ons, prices, durations, deposits, per-barber
     pricing, ordering.
   - **Team:** invite by email, roles, weekly hours with breaks, time off.
+  - **Website:** the shop's site link, a live desktop/phone preview, a
+    checklist of what the site is missing, and bookings by source.
   - **Settings:** name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
 

@@ -27,3 +27,13 @@ export function serverEnv() {
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
   });
 }
+
+/**
+ * Origin of the shop websites app (apps/sites), e.g.
+ * https://lineup-sites-southwell-media.vercel.app. Optional: without it the
+ * dashboard can't link to a shop's site.
+ */
+export function sitesUrl(): string | null {
+  const value = process.env.SITES_URL?.trim();
+  return value && z.string().url().safeParse(value).success ? value : null;
+}

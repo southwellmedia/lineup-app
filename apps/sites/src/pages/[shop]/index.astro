@@ -38,7 +38,7 @@ Astro.response.headers.set("cache-control", "public, s-maxage=60, stale-while-re
           <span class={`size-2 rounded-full ${status.open ? "bg-emerald-600" : "bg-muted"}`}></span>
           {status.text}
         </p>
-        <h1 class="font-display text-[clamp(3rem,14vw,11rem)] font-black uppercase leading-[0.82] tracking-tight break-words">
+        <h1 class="font-display text-[clamp(3rem,14vw,11rem)] font-black uppercase leading-[0.82] tracking-tight [overflow-wrap:anywhere]">
           {site.shop.name}
         </h1>
         {site.shop.tagline ? <p class="mt-5 max-w-xl font-serif text-3xl text-muted md:text-4xl">{site.shop.tagline}</p> : null}

@@ -7,6 +7,7 @@ import { scheduleRouter } from "./routers/schedule";
 import { servicesRouter } from "./routers/services";
 import { settingsRouter } from "./routers/settings";
 import { teamRouter } from "./routers/team";
+import { websiteRouter } from "./routers/website";
 
 export const appRouter = router({
   booking: bookingRouter,
@@ -17,6 +18,7 @@ export const appRouter = router({
   services: servicesRouter,
   team: teamRouter,
   clients: clientsRouter,
+  website: websiteRouter,
 });
 
 export type AppRouter = typeof appRouter;

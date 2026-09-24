@@ -85,7 +85,7 @@ supabase/seed.sql        # local demo shop
   (`LU404` → NOT_FOUND, `LU409` → CONFLICT, `LU410` → PRECONDITION_FAILED,
   `LU422` → BAD_REQUEST).
 - Admin routers: `schedule`, `appointments`, `clients`, `services`, `team`,
-  `settings`. Owner/manager-only writes use `managerProcedure`; barbers can
+  `settings`, `website`. Owner/manager-only writes use `managerProcedure`; barbers can
   edit their own hours and time off. Admin pages gate with `viewerShop()` /
   `managerShop()` from `lib/dashboard/viewer.ts`.
 - Brand color: `shops.brand_color`, applied with `brandStyle()`, which sets
@@ -123,6 +123,9 @@ supabase/seed.sql        # local demo shop
   Declare them with `access: "secret"` so they're read at runtime: turbo's
   strict env mode strips undeclared vars from builds, and Astro requires
   `public` server vars at build time.
+- The dashboard's Website page (`website.overview`) links to the site via
+  the web app's `SITES_URL` env (a custom domain wins), shows a completeness
+  checklist built from the same `SiteData`, and 30-day bookings by `source`.
 - Book links go through `bookingLink()` so attribution (`src=website`) is
   always set. Pages cache for 60s at the edge.
 

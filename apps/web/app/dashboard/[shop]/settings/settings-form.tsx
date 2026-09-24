@@ -213,7 +213,7 @@ export function SettingsForm() {
           </div>
         </Card>
 
-        <Card>
+        <Card id="contact" className="scroll-mt-6">
           <CardTitle>Contact &amp; location</CardTitle>
           <p className="-mt-2 mb-4 text-sm text-muted">
             Shown on your website and booking page, and used for Google.
