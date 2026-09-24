@@ -2,13 +2,21 @@ import { createCallerFactory, router } from "./init";
 import { appointmentsRouter } from "./routers/appointments";
 import { bookingRouter } from "./routers/booking";
 import { meRouter } from "./routers/me";
+import { clientsRouter } from "./routers/clients";
 import { scheduleRouter } from "./routers/schedule";
+import { servicesRouter } from "./routers/services";
+import { settingsRouter } from "./routers/settings";
+import { teamRouter } from "./routers/team";
 
 export const appRouter = router({
   booking: bookingRouter,
   appointments: appointmentsRouter,
   me: meRouter,
   schedule: scheduleRouter,
+  settings: settingsRouter,
+  services: servicesRouter,
+  team: teamRouter,
+  clients: clientsRouter,
 });
 
 export type AppRouter = typeof appRouter;

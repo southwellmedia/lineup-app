@@ -55,7 +55,13 @@ export const bookingRouter = router({
 
     const offers = unwrap(staffServices);
     return {
-      shop: { id: shop.id, name: shop.name, slug: shop.slug, timezone: shop.timezone },
+      shop: {
+        id: shop.id,
+        name: shop.name,
+        slug: shop.slug,
+        timezone: shop.timezone,
+        brandColor: shop.brand_color,
+      },
       barbers: unwrap(staff).map((s) => ({
         id: s.id,
         name: s.display_name,

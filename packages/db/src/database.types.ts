@@ -69,6 +69,8 @@ export type Database = {
       appointments: {
         Row: {
           blocked_until: string;
+          checked_in_at: string | null;
+          completed_at: string | null;
           booked_by: Database["public"]["Enums"]["booking_actor"];
           cancellation_reason: string | null;
           cancelled_at: string | null;
@@ -90,6 +92,8 @@ export type Database = {
         };
         Insert: {
           blocked_until: string;
+          checked_in_at?: string | null;
+          completed_at?: string | null;
           booked_by: Database["public"]["Enums"]["booking_actor"];
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
@@ -111,6 +115,8 @@ export type Database = {
         };
         Update: {
           blocked_until?: string;
+          checked_in_at?: string | null;
+          completed_at?: string | null;
           booked_by?: Database["public"]["Enums"]["booking_actor"];
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
@@ -439,6 +445,7 @@ export type Database = {
       };
       shops: {
         Row: {
+          brand_color: string | null;
           cancellation_window_minutes: number;
           created_at: string;
           custom_domain: string | null;
@@ -456,6 +463,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          brand_color?: string | null;
           cancellation_window_minutes?: number;
           created_at?: string;
           custom_domain?: string | null;
@@ -473,6 +481,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          brand_color?: string | null;
           cancellation_window_minutes?: number;
           created_at?: string;
           custom_domain?: string | null;
@@ -679,6 +688,18 @@ export type Database = {
       };
     };
     Views: {
+      client_stats: {
+        Row: {
+          client_id: string | null;
+          last_visit_at: string | null;
+          next_visit_at: string | null;
+          no_shows: number | null;
+          shop_id: string | null;
+          spent_cents: number | null;
+          visits: number | null;
+        };
+        Relationships: [];
+      };
       appointment_balances: {
         Row: {
           appointment_id: string | null;
@@ -808,6 +829,19 @@ export type Database = {
       };
       expire_stale_holds: { Args: never; Returns: number };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
+      set_working_hours: {
+        Args: { p_hours: Json; p_staff_id: string };
+        Returns: {
+          created_at: string;
+          end_time: string;
+          id: string;
+          shop_id: string;
+          staff_id: string;
+          start_time: string;
+          updated_at: string;
+          weekday: number;
+        }[];
+      };
       record_manual_payment: {
         Args: {
           p_amount_cents?: number;

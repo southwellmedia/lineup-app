@@ -5,29 +5,24 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { DateTime } from "luxon";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { formatTime } from "@/lib/booking/slots";
+import { chairTime, formatClock } from "@/lib/dashboard/chair";
 import { formatPhone, sourceLabel, STATUS_LABEL, summarizeDay } from "@/lib/dashboard/summary";
 import { formatCents } from "@/lib/format/money";
+import { useShop } from "@/components/shop-context";
 import { useTRPC } from "@/trpc/client";
 import type { AppRouter } from "@/trpc/router";
 
 type Day = inferRouterOutputs<AppRouter>["schedule"]["day"];
 type Appointment = Day["appointments"][number];
 
-function dayHref(shopId: string, date: string): Route {
-  return `/dashboard?shop=${shopId}&date=${date}` as Route;
-}
-
-export function DayBoard(props: {
-  shopId: string;
-  date: string;
-  today: string;
-  shops: { id: string; name: string; slug: string }[];
-}) {
+export function DayBoard(props: { date: string; today: string }) {
   const trpc = useTRPC();
+  const shop = useShop();
+  const dayHref = (date: string) => `/dashboard/${shop.slug}?date=${date}` as Route;
   const { data: day } = useSuspenseQuery(
-    trpc.schedule.day.queryOptions({ shopId: props.shopId, date: props.date }),
+    trpc.schedule.day.queryOptions({ shopId: shop.id, date: props.date }),
   );
   const isManager = day.viewer.role === "owner" || day.viewer.role === "manager";
   const [barber, setBarber] = useState<string>("all");
@@ -42,24 +37,9 @@ export function DayBoard(props: {
       {/* Shop + date */}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          {props.shops.length > 1 ? (
-            <nav aria-label="Shops" className="mb-1 flex flex-wrap gap-2 text-sm">
-              {props.shops.map((s) => (
-                <Link
-                  key={s.id}
-                  href={dayHref(s.id, props.date)}
-                  aria-current={s.id === props.shopId ? "page" : undefined}
-                  className="rounded-full border border-line px-3 py-1 aria-[current=page]:border-ink aria-[current=page]:bg-ink aria-[current=page]:text-paper"
-                >
-                  {s.name}
-                </Link>
-              ))}
-            </nav>
-          ) : (
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
-              {day.shop.name}
-            </p>
-          )}
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">
+            {day.shop.name}
+          </p>
           <h1 className="font-display text-5xl font-black uppercase leading-[0.9] tracking-tight">
             {props.date === props.today ? "Today" : d.toFormat("cccc")}
             <span className="ml-3 font-serif text-2xl font-normal normal-case text-muted">
@@ -69,23 +49,20 @@ export function DayBoard(props: {
         </div>
         <nav aria-label="Change day" className="flex items-center gap-1.5">
           <DayLink
-            href={dayHref(props.shopId, d.minus({ days: 1 }).toISODate() ?? props.date)}
+            href={dayHref(d.minus({ days: 1 }).toISODate() ?? props.date)}
             label="Previous day"
           >
             ←
           </DayLink>
           {props.date !== props.today ? (
             <Link
-              href={dayHref(props.shopId, props.today)}
+              href={dayHref(props.today)}
               className="rounded-full border border-ink px-4 py-2 text-sm font-semibold hover:bg-ink hover:text-paper"
             >
               Today
             </Link>
           ) : null}
-          <DayLink
-            href={dayHref(props.shopId, d.plus({ days: 1 }).toISODate() ?? props.date)}
-            label="Next day"
-          >
+          <DayLink href={dayHref(d.plus({ days: 1 }).toISODate() ?? props.date)} label="Next day">
             →
           </DayLink>
         </nav>
@@ -102,6 +79,11 @@ export function DayBoard(props: {
           highlight
         />
       </dl>
+
+      {/* Who's in which chair right now */}
+      {props.date === props.today ? (
+        <InTheChair appointments={day.appointments} staffName={staffName} />
+      ) : null}
 
       {/* Barber filter (owners and managers) */}
       {isManager && day.staff.length > 1 ? (
@@ -147,7 +129,11 @@ export function DayBoard(props: {
               <AppointmentCard
                 appt={appt}
                 timezone={day.shop.timezone}
-                barberName={isManager && day.staff.length > 1 ? staffName(appt.staffId) : null}
+                barberName={
+                  appt.status === "checked_in" || (isManager && day.staff.length > 1)
+                    ? staffName(appt.staffId)
+                    : null
+                }
                 queryKey={trpc.schedule.day.pathKey()}
               />
             </li>
@@ -155,6 +141,79 @@ export function DayBoard(props: {
         </ol>
       )}
     </div>
+  );
+}
+
+/** The current time, ticking every `ms` milliseconds. */
+function useNow(ms = 1000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(id);
+  }, [ms]);
+  return now;
+}
+
+/** A strip of everyone checked in right now, with live timers. Tapping one jumps to its card. */
+function InTheChair({
+  appointments,
+  staffName,
+}: {
+  appointments: Appointment[];
+  staffName: (id: string) => string;
+}) {
+  const now = useNow();
+  const active = appointments.filter((a) => a.status === "checked_in");
+  if (active.length === 0) return null;
+
+  return (
+    <section aria-label="In the chair now" className="mb-6">
+      <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-brand" />
+        </span>
+        In the chair now
+      </h2>
+      <ul className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
+        {active.map((a) => {
+          const t = chairTime(a, now);
+          return (
+            <li key={a.id} className="shrink-0">
+              <a
+                href={`#appt-${a.id}`}
+                className="flex items-center gap-3 rounded-2xl bg-ink py-2.5 pl-2.5 pr-4 text-paper transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              >
+                <BarberAvatar name={staffName(a.staffId)} />
+                <span className="min-w-0">
+                  <span className="block text-xs text-paper/60">
+                    {staffName(a.staffId)} · {a.client?.name ?? "Client"}
+                  </span>
+                  <span
+                    className={`font-display text-2xl font-extrabold leading-none tabular-nums ${t.over ? "text-brand" : ""}`}
+                  >
+                    {formatClock(t.elapsed)}
+                  </span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function BarberAvatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
+  return (
+    <span
+      aria-hidden
+      className={`grid shrink-0 place-items-center rounded-full bg-brand font-display font-black uppercase text-brand-ink ring-2 ring-paper/20 ${
+        size === "lg" ? "size-12 text-2xl" : "size-9 text-lg"
+      }`}
+    >
+      {name.slice(0, 1)}
+    </span>
   );
 }
 
@@ -238,18 +297,31 @@ function AppointmentCard(props: {
     trpc.appointments.cancel.mutationOptions({ onSuccess: onDone, onError }),
   );
 
+  if (appt.status === "checked_in") {
+    return (
+      <ChairCard
+        appt={appt}
+        barberName={props.barberName ?? "Barber"}
+        panel={panel}
+        setPanel={setPanel}
+        error={error}
+        busy={noShow.isPending || cancel.isPending}
+        onNoShow={() => noShow.mutate({ appointmentId: appt.id })}
+        onCancel={() => cancel.mutate({ appointmentId: appt.id })}
+        onPaid={onDone}
+      />
+    );
+  }
+
   const inactive = appt.status === "cancelled" || appt.status === "no_show";
-  const live = appt.status === "confirmed" || appt.status === "checked_in";
+  const live = appt.status === "confirmed";
   const canPay = (live || appt.status === "completed") && appt.balanceDueCents > 0;
   const busy = checkIn.isPending || noShow.isPending || cancel.isPending;
 
   return (
     <article
-      className={`rounded-2xl border bg-card p-4 transition-colors ${
-        appt.status === "checked_in"
-          ? "border-brand shadow-[4px_4px_0_0_var(--color-brand)]"
-          : "border-line"
-      } ${inactive ? "opacity-60" : ""}`}
+      id={`appt-${appt.id}`}
+      className={`scroll-mt-24 rounded-2xl border border-line bg-card p-4 transition-colors ${inactive ? "opacity-60" : ""}`}
     >
       <div className="flex gap-4">
         <div className="w-20 shrink-0">
@@ -377,6 +449,192 @@ function AppointmentCard(props: {
           onPaid={onDone}
         />
       ) : null}
+    </article>
+  );
+}
+
+/**
+ * A client who is checked in: a live timer against the booked length, a
+ * barber-pole progress bar, and who has them. "Finish & pay" is the main action.
+ */
+function ChairCard(props: {
+  appt: Appointment;
+  barberName: string;
+  panel: Panel;
+  setPanel: (panel: Panel) => void;
+  error: string | null;
+  busy: boolean;
+  onNoShow: () => void;
+  onCancel: () => void;
+  onPaid: () => Promise<void>;
+}) {
+  const { appt } = props;
+  const now = useNow();
+  const t = chairTime(appt, now);
+  const shop = useShop();
+
+  return (
+    <article
+      id={`appt-${appt.id}`}
+      className="scroll-mt-24 overflow-hidden rounded-2xl bg-ink text-paper shadow-[5px_5px_0_0_var(--color-brand)]"
+    >
+      {/* Progress against the booked time; the stripe keeps moving while they're in the chair. */}
+      <div
+        className="h-2 bg-paper/10"
+        role="progressbar"
+        aria-label="Time in the chair"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(t.planned / 60)}
+        aria-valuenow={Math.round(t.elapsed / 60)}
+      >
+        <div
+          className="pole h-full animate-pole transition-[width] duration-1000 ease-linear"
+          style={{ width: `${Math.max(3, t.progress * 100)}%` }}
+        />
+      </div>
+
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-paper/70">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-brand" />
+            </span>
+            In the chair
+          </p>
+          <p className="flex items-center gap-2 text-sm">
+            <BarberAvatar name={props.barberName} />
+            <span>
+              <span className="block text-xs text-paper/60">with</span>
+              <span className="font-semibold">{props.barberName}</span>
+            </span>
+          </p>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-end gap-x-4 gap-y-1">
+          <p
+            role="timer"
+            aria-label={`${Math.floor(t.elapsed / 60)} minutes in the chair`}
+            className={`font-display text-7xl font-black leading-none tracking-tight tabular-nums ${t.over ? "text-brand" : ""}`}
+          >
+            {formatClock(t.elapsed)}
+          </p>
+          <p className="pb-2 text-sm text-paper/70">
+            {t.over
+              ? `+${Math.ceil(t.over / 60)} min over`
+              : `of ${Math.round(t.planned / 60)} min · started ${formatTime(appt.checkedInAt ?? appt.startsAt, shop.timezone)}`}
+          </p>
+        </div>
+
+        <div className="mt-4 border-t border-paper/15 pt-3">
+          <p className="text-xl font-semibold">{appt.client?.name ?? "Client"}</p>
+          <p className="text-paper/80">
+            {appt.services.join(" + ")} ·{" "}
+            <span className="tabular-nums">
+              {formatCents(appt.balanceDueCents || appt.priceCents)}
+            </span>
+          </p>
+          {appt.note ? (
+            <p className="mt-2 rounded-lg bg-paper/10 px-3 py-2 text-sm">
+              <span className="font-serif text-paper/60">Note: </span>
+              {appt.note}
+            </p>
+          ) : null}
+        </div>
+
+        {props.error ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-brand-ink"
+          >
+            {props.error}
+          </p>
+        ) : null}
+
+        {props.panel === "none" ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => props.setPanel("pay")}
+              className="rounded-full bg-brand px-5 py-2.5 font-semibold text-brand-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper"
+            >
+              Finish &amp; pay
+            </button>
+            <button
+              type="button"
+              disabled={props.busy}
+              onClick={() => props.setPanel("more")}
+              className="rounded-full border border-paper/30 px-4 py-2.5 text-sm font-semibold hover:bg-paper hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper disabled:opacity-40"
+            >
+              More
+            </button>
+          </div>
+        ) : null}
+
+        {props.panel === "more" ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={props.busy}
+              onClick={props.onNoShow}
+              className="rounded-full border border-paper/30 px-4 py-2 text-sm font-semibold hover:bg-paper hover:text-ink disabled:opacity-40"
+            >
+              No-show
+            </button>
+            <button
+              type="button"
+              disabled={props.busy}
+              onClick={() => props.setPanel("cancel")}
+              className="rounded-full border border-brand px-4 py-2 text-sm font-semibold text-brand hover:bg-brand hover:text-brand-ink disabled:opacity-40"
+            >
+              Cancel appointment
+            </button>
+            <button
+              type="button"
+              onClick={() => props.setPanel("none")}
+              className="rounded-full px-4 py-2 text-sm font-semibold text-paper/70 hover:text-paper"
+            >
+              Close
+            </button>
+          </div>
+        ) : null}
+
+        {props.panel === "cancel" ? (
+          <div className="mt-4">
+            <p className="mb-2 font-medium">
+              Cancel {appt.client?.name ?? "this appointment"}? This frees the slot.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={props.busy}
+                onClick={props.onCancel}
+                className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-ink disabled:opacity-40"
+              >
+                Yes, cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => props.setPanel("none")}
+                className="rounded-full border border-paper/30 px-4 py-2 text-sm font-semibold hover:bg-paper hover:text-ink"
+              >
+                Keep it
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {props.panel === "pay" ? (
+          <div className="mt-4 rounded-xl bg-card p-4 text-ink [&>form]:mt-0 [&>form]:border-t-0 [&>form]:pt-0">
+            <PayPanel
+              appointmentId={appt.id}
+              balanceDueCents={appt.balanceDueCents}
+              onClose={() => props.setPanel("none")}
+              onPaid={props.onPaid}
+            />
+          </div>
+        ) : null}
+      </div>
     </article>
   );
 }

@@ -1,42 +1,25 @@
-import { shopToday } from "@/lib/booking/slots";
-import { getQueryClient, HydrateClient, serverCaller, trpc } from "@/trpc/server";
-import { DayBoard } from "./day-board";
+import type { Route } from "next";
+import { redirect } from "next/navigation";
+import { serverCaller } from "@/trpc/server";
 
-type Props = { searchParams: Promise<{ shop?: string; date?: string }> };
-
-export default async function DashboardPage({ searchParams }: Props) {
-  const params = await searchParams;
+/** Sends staff to their first shop; explains what to do if they have none. */
+export default async function DashboardIndex() {
   const shops = await (await serverCaller()).me.shops();
-
-  if (shops.length === 0) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <h1 className="font-display text-4xl font-black uppercase">No shop yet</h1>
-        <p className="mt-2 max-w-md text-muted">
-          You&apos;re signed in, but this email isn&apos;t on any shop&apos;s team. Ask the shop
-          owner to add you with this email, then sign in again.
-        </p>
-      </main>
-    );
-  }
-
-  const shop = shops.find((s) => s.id === params.shop) ?? shops[0];
-  if (!shop) return null;
-  const date =
-    params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : shopToday(shop.timezone);
-
-  await getQueryClient().prefetchQuery(trpc.schedule.day.queryOptions({ shopId: shop.id, date }));
+  const first = shops[0];
+  if (first) redirect(`/dashboard/${first.slug}` as Route);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pb-24 pt-6 sm:px-6">
-      <HydrateClient>
-        <DayBoard
-          shopId={shop.id}
-          date={date}
-          today={shopToday(shop.timezone)}
-          shops={shops.map((s) => ({ id: s.id, name: s.name, slug: s.slug }))}
-        />
-      </HydrateClient>
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6">
+      <h1 className="font-display text-5xl font-black uppercase leading-[0.9]">No shop yet</h1>
+      <p className="mt-3 text-muted">
+        You&apos;re signed in, but this email isn&apos;t on any shop&apos;s team. Ask the owner to
+        invite you with this email, then sign in again.
+      </p>
+      <form action="/auth/signout" method="post" className="mt-6">
+        <button type="submit" className="font-semibold underline underline-offset-4">
+          Sign out
+        </button>
+      </form>
     </main>
   );
 }

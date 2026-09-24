@@ -330,3 +330,58 @@ describe("appointment status", () => {
     ).toBe("LU422");
   });
 });
+
+describe("status timestamps", () => {
+  it("records when a client checks in and when the cut is done", async () => {
+    const shop = await createShop(db.pool);
+    const appt = await db.asService((c) =>
+      book(c, {
+        shopId: shop.shopId,
+        staffId: shop.barber.staffId,
+        serviceIds: [shop.services.fade],
+        clientId: shop.clientId,
+        startsAt: "2020-01-01T16:00:00Z",
+      }),
+    );
+
+    await db.asUser(shop.barber.userId, (c) =>
+      c.query("UPDATE appointments SET status = 'checked_in' WHERE id = $1", [appt.id]),
+    );
+    const checkedIn = await db.pool.query(
+      "SELECT checked_in_at, completed_at FROM appointments WHERE id = $1",
+      [appt.id],
+    );
+    expect(checkedIn.rows[0].checked_in_at).toBeInstanceOf(Date);
+    expect(checkedIn.rows[0].completed_at).toBeNull();
+
+    await db.asUser(shop.barber.userId, (c) =>
+      c.query("SELECT record_manual_payment($1, 'cash')", [appt.id]),
+    );
+    const done = await db.pool.query(
+      "SELECT checked_in_at, completed_at FROM appointments WHERE id = $1",
+      [appt.id],
+    );
+    expect(done.rows[0].completed_at).toBeInstanceOf(Date);
+    expect(done.rows[0].checked_in_at.getTime()).toBe(checkedIn.rows[0].checked_in_at.getTime());
+  });
+
+  it("backfills check-in to the booking time when a cut is paid without checking in", async () => {
+    const shop = await createShop(db.pool);
+    const appt = await db.asService((c) =>
+      book(c, {
+        shopId: shop.shopId,
+        staffId: shop.barber.staffId,
+        serviceIds: [shop.services.fade],
+        clientId: shop.clientId,
+        startsAt: "2020-02-01T16:00:00Z",
+      }),
+    );
+    await db.asUser(shop.barber.userId, (c) =>
+      c.query("SELECT record_manual_payment($1, 'cash')", [appt.id]),
+    );
+    const { rows } = await db.pool.query("SELECT checked_in_at FROM appointments WHERE id = $1", [
+      appt.id,
+    ]);
+    expect(rows[0].checked_in_at.toISOString()).toBe("2020-02-01T16:00:00.000Z");
+  });
+});

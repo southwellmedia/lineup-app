@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { brandStyle } from "@/lib/shop/brand";
 import { getQueryClient, HydrateClient, serverCaller, trpc } from "@/trpc/server";
 import { BookingFlow, type PublicSource } from "./booking-flow";
 
@@ -44,7 +45,11 @@ export default async function BookingPage({ params, searchParams }: Props) {
   const source = (typeof src === "string" && SOURCES[src.toLowerCase()]) || "booking_link";
 
   return (
-    <main className="mx-auto max-w-xl px-4 pt-8 sm:px-6 sm:pt-12">
+    // The shop's brand color themes every accent on the page.
+    <main
+      className="mx-auto max-w-xl px-4 pt-8 sm:px-6 sm:pt-12"
+      style={brandStyle(menu.shop.brandColor)}
+    >
       <header className="mb-10 flex items-end justify-between gap-4 border-b-2 border-ink pb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Book online</p>

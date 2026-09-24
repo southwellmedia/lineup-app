@@ -27,7 +27,7 @@ export const scheduleRouter = router({
       ctx.supabase
         .from("appointments")
         .select(
-          "id, staff_id, client_id, status, starts_at, ends_at, source, booked_by, total_price_cents, deposit_cents, client_note",
+          "id, staff_id, client_id, status, starts_at, ends_at, checked_in_at, completed_at, source, booked_by, total_price_cents, deposit_cents, client_note",
         )
         .eq("shop_id", shop.id)
         .gte("starts_at", window.start.toISOString())
@@ -81,6 +81,8 @@ export const scheduleRouter = router({
           status: a.status,
           startsAt: a.starts_at,
           endsAt: a.ends_at,
+          checkedInAt: a.checked_in_at,
+          completedAt: a.completed_at,
           source: a.source,
           bookedBy: a.booked_by,
           note: a.client_note,

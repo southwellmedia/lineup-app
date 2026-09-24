@@ -17,6 +17,14 @@ export function toTRPCError(error: DbError): TRPCError {
       return new TRPCError({ code: "PRECONDITION_FAILED", message: error.message, cause: error });
     case "LU422":
       return new TRPCError({ code: "BAD_REQUEST", message: error.message, cause: error });
+    case "23505":
+      return new TRPCError({ code: "CONFLICT", message: "That's already taken.", cause: error });
+    case "23514":
+      return new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Some values aren't allowed. Check the form.",
+        cause: error,
+      });
     case "42501":
       return new TRPCError({
         code: "FORBIDDEN",

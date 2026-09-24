@@ -26,7 +26,8 @@ apps/web/                # Next.js: booking pages + the tRPC booking API
   trpc/init.ts           # context + procedure levels (public → authed → shop → manager)
   trpc/routers/          # booking (public); schedule, appointments, me (staff)
   app/book/[shopSlug]/   # public booking flow
-  app/dashboard/         # staff day view (sign-in required)
+  app/dashboard/[shop]/  # admin (sign-in required): Today, Clients, Services, Team, Settings
+  components/ui.tsx      # shared admin primitives (Button, Field, Input, Switch, Card…)
   app/login, app/auth/   # magic-link sign-in, callback, sign-out
   lib/booking/           # server-side booking context + pure helpers (tested)
   lib/supabase/          # user client (RLS), admin client (secret key), browser client
@@ -78,6 +79,15 @@ supabase/seed.sql        # local demo shop
 - Wrap Supabase results in `unwrap()`, which maps `LU*` codes to tRPC errors
   (`LU404` → NOT_FOUND, `LU409` → CONFLICT, `LU410` → PRECONDITION_FAILED,
   `LU422` → BAD_REQUEST).
+- Admin routers: `schedule`, `appointments`, `clients`, `services`, `team`,
+  `settings`. Owner/manager-only writes use `managerProcedure`; barbers can
+  edit their own hours and time off. Admin pages gate with `viewerShop()` /
+  `managerShop()` from `lib/dashboard/viewer.ts`.
+- Brand color: `shops.brand_color`, applied with `brandStyle()`, which sets
+  both `--brand` and Tailwind's `--color-brand` (a subtree can't override
+  the latter through `--brand` alone).
+- `appointments.checked_in_at` / `completed_at` are set by a trigger on status
+  change; they drive the live "in the chair" timer.
 - Booking flow: `booking.availability` → `booking.hold` (10-minute hold,
   re-checked with `isSlotAvailable`) → `booking.confirm` (matches returning
   clients by phone).

@@ -1,0 +1,72 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { SLUG_PATTERN } from "@/lib/shop/slug";
+import { unwrap } from "../errors";
+import { managerProcedure, router, shopProcedure } from "../init";
+
+const SETTINGS_COLUMNS =
+  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff" as const;
+
+export const settingsRouter = router({
+  get: shopProcedure.query(async ({ ctx }) => {
+    const shop = unwrap(
+      await ctx.supabase.from("shops").select(SETTINGS_COLUMNS).eq("id", ctx.shopId).maybeSingle(),
+    );
+    if (!shop) throw new TRPCError({ code: "NOT_FOUND", message: "Shop not found." });
+    return shop;
+  }),
+
+  update: managerProcedure
+    .input(
+      z.object({
+        name: z.string().trim().min(1).max(80),
+        slug: z
+          .string()
+          .trim()
+          .toLowerCase()
+          .regex(SLUG_PATTERN, "Use lowercase letters, numbers and dashes."),
+        timezone: z.string().min(1),
+        brandColor: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/, "Pick a color like #C0312B.")
+          .nullable(),
+        minBookingNoticeMinutes: z.number().int().min(0).max(10_080),
+        maxBookingAdvanceDays: z.number().int().min(1).max(365),
+        slotIntervalMinutes: z.number().int().min(5).max(120),
+        cancellationWindowMinutes: z.number().int().min(0).max(10_080),
+        lateCancelFeeCents: z.number().int().min(0).max(100_000),
+        noShowFeeCents: z.number().int().min(0).max(100_000),
+        shareClientsBetweenStaff: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!Intl.supportedValuesOf("timeZone").includes(input.timezone)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Pick a valid timezone." });
+      }
+      const result = await ctx.supabase
+        .from("shops")
+        .update({
+          name: input.name,
+          slug: input.slug,
+          timezone: input.timezone,
+          brand_color: input.brandColor,
+          min_booking_notice_minutes: input.minBookingNoticeMinutes,
+          max_booking_advance_days: input.maxBookingAdvanceDays,
+          slot_interval_minutes: input.slotIntervalMinutes,
+          cancellation_window_minutes: input.cancellationWindowMinutes,
+          late_cancel_fee_cents: input.lateCancelFeeCents,
+          no_show_fee_cents: input.noShowFeeCents,
+          share_clients_between_staff: input.shareClientsBetweenStaff,
+        })
+        .eq("id", ctx.shopId)
+        .select(SETTINGS_COLUMNS)
+        .single();
+      if (result.error?.code === "23505") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "That booking link is taken. Try another.",
+        });
+      }
+      return unwrap(result);
+    }),
+});

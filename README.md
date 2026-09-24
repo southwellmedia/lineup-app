@@ -27,11 +27,17 @@ The web app (`apps/web`) has:
 
 - **Client booking** at `/book/<shop-slug>`: service, barber (or any),
   time, details, confirmation with add-to-calendar.
-- **Staff dashboard** at `/dashboard` (magic-link sign-in at `/login`): the
-  day's appointments, totals, check-in, mark paid (cash or other, with tip),
-  no-show and cancel. Owners see the whole shop; barbers see their chair.
+- **Admin** at `/dashboard` (magic-link sign-in at `/login`):
+  - **Today:** the day's book, totals, check-in with a live "in the chair"
+    timer, mark paid (cash or other, with tip), no-show and cancel.
+  - **Clients:** search, profiles with history, notes, add client, CSV export.
+  - **Services:** menu, add-ons, prices, durations, deposits, per-barber
+    pricing, ordering.
+  - **Team:** invite by email, roles, weekly hours with breaks, time off.
+  - **Settings:** name, booking link, timezone, brand color, booking rules.
+    Owners and managers see everything; barbers see their chair and hours.
 
-Next up: shop setup (services, hours, time off, invite barbers).
+Next up: websites (multi-tenant Astro), then the calendar week view.
 
 ## Getting started
 
