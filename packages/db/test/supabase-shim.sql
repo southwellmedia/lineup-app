@@ -26,7 +26,16 @@ AS $$
   )::uuid;
 $$;
 
+CREATE OR REPLACE FUNCTION auth.jwt()
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
+$$;
+
 GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION auth.uid() TO anon, authenticated, service_role;
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 

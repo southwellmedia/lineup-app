@@ -276,3 +276,21 @@ describe("the payments ledger", () => {
     });
   });
 });
+
+describe("deleting a user who recorded payments", () => {
+  it("is allowed, and the ledger keeps who recorded each payment", async () => {
+    const shop = await createShop(db.pool);
+    const appt = await bookFade(shop);
+    await db.asUser(shop.barber.userId, (c) =>
+      c.query("SELECT record_manual_payment($1, 'cash')", [appt.id]),
+    );
+
+    await db.pool.query("DELETE FROM auth.users WHERE id = $1", [shop.barber.userId]);
+
+    const { rows } = await db.pool.query(
+      "SELECT recorded_by FROM payments WHERE appointment_id = $1",
+      [appt.id],
+    );
+    expect(rows[0].recorded_by).toBe(shop.barber.userId);
+  });
+});

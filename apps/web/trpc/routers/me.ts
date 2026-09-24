@@ -16,7 +16,7 @@ export const meRouter = router({
     const shops = unwrap(
       await ctx.supabase
         .from("shops")
-        .select("id, name, slug, plan")
+        .select("id, name, slug, plan, timezone")
         .in(
           "id",
           memberships.map((m) => m.shop_id),

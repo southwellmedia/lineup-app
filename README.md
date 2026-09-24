@@ -23,12 +23,15 @@ This first slice sets up the foundation the plan asks for before any UI:
 The schema is live on the hosted Supabase project, and typed access is
 available from `@lineup/db`.
 
-The web app (`apps/web`) has the tRPC booking API: check availability, hold a
-slot, confirm with the client's details, and mark a booking paid in cash. A
-first booking page shows a shop's barbers and menu at `/book/<shop-slug>`.
+The web app (`apps/web`) has:
 
-Next up: the interactive booking flow (pick a service, barber and time, then
-check out).
+- **Client booking** at `/book/<shop-slug>`: service, barber (or any),
+  time, details, confirmation with add-to-calendar.
+- **Staff dashboard** at `/dashboard` (magic-link sign-in at `/login`): the
+  day's appointments, totals, check-in, mark paid (cash or other, with tip),
+  no-show and cancel. Owners see the whole shop; barbers see their chair.
+
+Next up: shop setup (services, hours, time off, invite barbers).
 
 ## Getting started
 

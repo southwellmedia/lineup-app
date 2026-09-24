@@ -9,7 +9,11 @@ export type Db = {
   /** Runs `fn` in a transaction as the server (service_role, bypasses RLS). */
   asService: <T>(fn: (client: pg.PoolClient) => Promise<T>) => Promise<T>;
   /** Runs `fn` in a transaction as a signed-in user, with RLS applied. */
-  asUser: <T>(userId: string, fn: (client: pg.PoolClient) => Promise<T>) => Promise<T>;
+  asUser: <T>(
+    userId: string,
+    fn: (client: pg.PoolClient) => Promise<T>,
+    claims?: Record<string, string>,
+  ) => Promise<T>;
   /** Runs `fn` in a transaction as an anonymous visitor. */
   asAnon: <T>(fn: (client: pg.PoolClient) => Promise<T>) => Promise<T>;
 };
@@ -72,7 +76,7 @@ export function useTestDb(): Db {
       return getPool();
     },
     asService: (fn) => inRole("service_role", {}, fn),
-    asUser: (userId, fn) => inRole("authenticated", { sub: userId }, fn),
+    asUser: (userId, fn, claims = {}) => inRole("authenticated", { ...claims, sub: userId }, fn),
     asAnon: (fn) => inRole("anon", {}, fn),
   };
 }

@@ -735,6 +735,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      claim_staff_invites: { Args: never; Returns: number };
       confirm_hold: {
         Args: { p_appointment_id: string; p_client_id: string };
         Returns: {

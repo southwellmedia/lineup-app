@@ -24,7 +24,10 @@ Architecture follows the MAD Stack shape, but this is its own product.
 ```
 apps/web/                # Next.js: booking pages + the tRPC booking API
   trpc/init.ts           # context + procedure levels (public → authed → shop → manager)
-  trpc/routers/          # booking (public), appointments + me (staff)
+  trpc/routers/          # booking (public); schedule, appointments, me (staff)
+  app/book/[shopSlug]/   # public booking flow
+  app/dashboard/         # staff day view (sign-in required)
+  app/login, app/auth/   # magic-link sign-in, callback, sign-out
   lib/booking/           # server-side booking context + pure helpers (tested)
   lib/supabase/          # user client (RLS), admin client (secret key), browser client
   proxy.ts               # refreshes Supabase auth cookies (Next 16's renamed middleware)
@@ -81,6 +84,19 @@ supabase/seed.sql        # local demo shop
 - Next 16: request APIs (`params`, `cookies()`) are async, and middleware is
   `proxy.ts`. Next's docs ship in `node_modules/next/dist/docs/`.
 
+## Staff sign-in
+
+- Supabase Auth email magic links. `/auth/callback` accepts both `?code=`
+  (PKCE, same browser only) and `?token_hash=&type=` (any device). For the
+  latter, set the Magic Link email template to
+  `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email`.
+- Staff are invited by putting their email on a `staff` row. On sign-in,
+  `claim_staff_invites()` links every matching unclaimed row to the user.
+- Auth → URL Configuration must list the site URL and
+  `https://<domain>/auth/callback` (plus `http://localhost:3000/**` for dev).
+- `payments.recorded_by` has no foreign key on purpose: the ledger is
+  immutable, so it can't be cleared when a user is deleted.
+
 ## Tenancy and security
 
 - The tenant is `shop_id`. A solo barber is a shop on the `solo` plan with one
@@ -110,8 +126,10 @@ supabase/seed.sql        # local demo shop
 ## Supabase project
 
 Hosted project `lineup-app` (ref `njrnucsrbxwtomnhcavs`, Postgres 17). Every
-migration in `supabase/migrations` has been applied to it, and the Supabase
-security advisor reports no issues. `.mcp.json` configures the Supabase MCP
+migration in `supabase/migrations` has been applied to it. The security
+advisor's only finding is an accepted WARN: `claim_staff_invites()` is a
+SECURITY DEFINER function signed-in users can call. That's intended; it only
+links the caller's own verified email. `.mcp.json` configures the Supabase MCP
 server for this project. Copy `apps/web/.env.example` to
 `apps/web/.env.local` and add the secret key; never commit secrets. The
 hosted project has the seed's demo shop, "Southside Cuts" (`/book/southside-cuts`).
