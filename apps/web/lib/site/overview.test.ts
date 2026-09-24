@@ -48,6 +48,7 @@ const site: SiteData = {
     },
   ],
   hours: [],
+  tracking: { ga4MeasurementId: null, metaPixelId: null, googleSiteVerification: null },
 };
 
 describe("shopSiteUrl", () => {

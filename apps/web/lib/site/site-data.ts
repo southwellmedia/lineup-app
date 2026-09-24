@@ -7,7 +7,7 @@ import { unwrap } from "@/trpc/errors";
 type Db = SupabaseClient<Database>;
 
 const SHOP_COLUMNS =
-  "id, name, slug, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, timezone, brand_color, custom_domain" as const;
+  "id, name, slug, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, timezone, brand_color, custom_domain, ga4_measurement_id, meta_pixel_id, google_site_verification" as const;
 
 /** Unique slugs for a list of names, in order: "Fade", "Fade" → "fade", "fade-2". */
 function slugsFor(names: string[]): string[] {
@@ -124,5 +124,10 @@ export async function loadSiteData(
         .filter((h) => bookable.has(h.staff_id))
         .map((h) => ({ weekday: h.weekday, start: h.start_time, end: h.end_time })),
     ),
+    tracking: {
+      ga4MeasurementId: shop.ga4_measurement_id,
+      metaPixelId: shop.meta_pixel_id,
+      googleSiteVerification: shop.google_site_verification,
+    },
   };
 }

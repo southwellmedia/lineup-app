@@ -52,6 +52,7 @@ const site: SiteData = {
     },
   ],
   hours: shopHours([{ weekday: 2, start: "10:00", end: "19:00" }]),
+  tracking: { ga4MeasurementId: null, metaPixelId: null, googleSiteVerification: null },
 };
 
 describe("prices", () => {

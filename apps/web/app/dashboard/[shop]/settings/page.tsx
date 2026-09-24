@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { managerShop } from "@/lib/dashboard/viewer";
 import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
+import { ConnectionsCard } from "./connections-card";
 import { SettingsForm } from "./settings-form";
 
 export const metadata: Metadata = { title: "Settings · Lineup" };
@@ -11,6 +12,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ shop:
   return (
     <HydrateClient>
       <SettingsForm />
+      <ConnectionsCard />
     </HydrateClient>
   );
 }

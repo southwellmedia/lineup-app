@@ -13,6 +13,7 @@ interface Props {
 
 const { ctx, title, description, path, jsonLd } = Astro.props;
 const { site, base } = ctx;
+const { ga4MeasurementId, metaPixelId, googleSiteVerification } = site.tracking;
 const style = Object.entries(brandStyle(site.shop.brandColor))
   .map(([k, v]) => `${k}:${v}`)
   .join(";");
@@ -45,6 +46,54 @@ const nav = [
       href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,600..900&family=Instrument+Sans:wght@400..700&family=Instrument+Serif:ital@1&display=swap"
     />
     {jsonLd ? <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} /> : null}
+    {googleSiteVerification ? <meta name="google-site-verification" content={googleSiteVerification} /> : null}
+    {/* The owner's own Google Analytics and Meta Pixel (Settings → Connections).
+        Ids are validated server-side and passed as data, never as code. Not
+        loaded inside frames, so the dashboard preview doesn't count. */}
+    {
+      ga4MeasurementId ? (
+        <script is:inline data-id={ga4MeasurementId}>
+          (() => {
+            if (window.top !== window.self) return;
+            const id = document.currentScript.dataset.id;
+            const tag = document.createElement("script");
+            tag.async = true;
+            tag.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
+            document.head.appendChild(tag);
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function () {
+              window.dataLayer.push(arguments);
+            };
+            window.gtag("js", new Date());
+            window.gtag("config", id);
+          })();
+        </script>
+      ) : null
+    }
+    {
+      metaPixelId ? (
+        <script is:inline data-id={metaPixelId}>
+          (() => {
+            if (window.top !== window.self || window.fbq) return;
+            const id = document.currentScript.dataset.id;
+            const fbq = (window.fbq = function () {
+              fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments);
+            });
+            window._fbq = fbq;
+            fbq.push = fbq;
+            fbq.loaded = true;
+            fbq.version = "2.0";
+            fbq.queue = [];
+            const tag = document.createElement("script");
+            tag.async = true;
+            tag.src = "https://connect.facebook.net/en_US/fbevents.js";
+            document.head.appendChild(tag);
+            fbq("init", id);
+            fbq("track", "PageView");
+          })();
+        </script>
+      ) : null
+    }
   </head>
   <body class="min-h-dvh pb-20 font-sans antialiased md:pb-0">
     <a
@@ -141,7 +190,12 @@ const nav = [
         document.addEventListener(
           "click",
           (e) => {
-            if (e.target instanceof Element && e.target.closest("a[href*='/book/']")) send("book_click");
+            if (e.target instanceof Element && e.target.closest("a[href*='/book/']")) {
+              send("book_click");
+              // Also tell the owner's own tools, if they connected any.
+              if (window.gtag) window.gtag("event", "book_click");
+              if (window.fbq) window.fbq("trackCustom", "BookClick");
+            }
           },
           { capture: true },
         );

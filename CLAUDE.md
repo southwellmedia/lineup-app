@@ -141,6 +141,11 @@ supabase/seed.sql        # local demo shop
   `site_events` is readable by owners/managers only; `site_analytics()`
   aggregates it (SECURITY INVOKER). The script skips frames (the dashboard
   preview) and automated browsers.
+- Settings → Connections stores a shop's GA4 id, Meta Pixel id and Search
+  Console token (`settings.updateConnections`; parsers in
+  `lib/site/connections.ts` accept pasted snippets). They reach the site as
+  `SiteData.tracking` and are strictly format-checked in the API and the
+  database, because they're written into the site's HTML.
 - Book links go through `bookingLink()` so attribution (`src=website`) is
   always set. Pages cache for 60s at the edge.
 

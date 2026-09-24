@@ -1,12 +1,32 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { normalizePhone } from "@/lib/booking/phone";
+import {
+  parseGa4,
+  parseMetaPixel,
+  parseSiteVerification,
+  type Parsed,
+} from "@/lib/site/connections";
 import { SLUG_PATTERN } from "@/lib/shop/slug";
 import { unwrap } from "../errors";
 import { managerProcedure, router, shopProcedure } from "../init";
 
 const SETTINGS_COLUMNS =
-  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood" as const;
+  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, ga4_measurement_id, meta_pixel_id, google_site_verification" as const;
+
+/** A pasted tag or id, reduced to the one value we store (null = remove). */
+const connection = (parse: (input: string) => Parsed) =>
+  z
+    .string()
+    .max(4000)
+    .transform((input, ctx) => {
+      const parsed = parse(input);
+      if ("error" in parsed) {
+        ctx.addIssue({ code: "custom", message: parsed.error });
+        return z.NEVER;
+      }
+      return parsed.value;
+    });
 
 const optionalText = (max: number) =>
   z
@@ -131,4 +151,28 @@ export const settingsRouter = router({
       }
       return unwrap(result);
     }),
+
+  /** Google Analytics, Meta Pixel and Search Console tags for the shop's website. */
+  updateConnections: managerProcedure
+    .input(
+      z.object({
+        ga4: connection(parseGa4),
+        metaPixel: connection(parseMetaPixel),
+        siteVerification: connection(parseSiteVerification),
+      }),
+    )
+    .mutation(async ({ ctx, input }) =>
+      unwrap(
+        await ctx.supabase
+          .from("shops")
+          .update({
+            ga4_measurement_id: input.ga4,
+            meta_pixel_id: input.metaPixel,
+            google_site_verification: input.siteVerification,
+          })
+          .eq("id", ctx.shopId)
+          .select(SETTINGS_COLUMNS)
+          .single(),
+      ),
+    ),
 });

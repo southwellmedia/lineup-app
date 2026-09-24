@@ -44,4 +44,10 @@ export type SiteData = {
     barberIds: string[];
   }[];
   hours: DayHours[];
+  /** Third-party tags the owner added in Settings → Connections. Validated ids only. */
+  tracking: {
+    ga4MeasurementId: string | null;
+    metaPixelId: string | null;
+    googleSiteVerification: string | null;
+  };
 };

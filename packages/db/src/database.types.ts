@@ -445,6 +445,9 @@ export type Database = {
       };
       shops: {
         Row: {
+          ga4_measurement_id: string | null;
+          google_site_verification: string | null;
+          meta_pixel_id: string | null;
           about: string | null;
           address_line: string | null;
           city: string | null;
@@ -473,6 +476,9 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          ga4_measurement_id?: string | null;
+          google_site_verification?: string | null;
+          meta_pixel_id?: string | null;
           about?: string | null;
           address_line?: string | null;
           city?: string | null;
@@ -501,6 +507,9 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          ga4_measurement_id?: string | null;
+          google_site_verification?: string | null;
+          meta_pixel_id?: string | null;
           about?: string | null;
           address_line?: string | null;
           city?: string | null;

@@ -44,7 +44,8 @@ The web app (`apps/web`) has:
     to bookings and booked value, top pages, referrers, bookings by
     source), the shop's site link, a live desktop/phone preview, and a
     checklist of what the site is missing.
-  - **Settings:** name, booking link, timezone, brand color, booking rules.
+  - **Settings:** Connections (Google Analytics 4, Meta Pixel, Search Console
+    verification for the shop's site), name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
 
 Shop websites (`apps/sites`, Astro) render each shop's site from the public

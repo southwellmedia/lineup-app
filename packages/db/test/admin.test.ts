@@ -156,3 +156,27 @@ describe("shop profile", () => {
     ).toBe("23514");
   });
 });
+
+describe("shop connections", () => {
+  it("accepts well-formed tracking ids and rejects anything else", async () => {
+    const shop = await createShop(db.pool);
+    await db.pool.query(
+      `UPDATE shops SET ga4_measurement_id = 'G-AB12CD34', meta_pixel_id = '123456789012345',
+         google_site_verification = 'abcDEF123_-abcDEF123_-xyz' WHERE id = $1`,
+      [shop.shopId],
+    );
+    for (const [column, value] of [
+      ["ga4_measurement_id", "UA-1234-1"],
+      ["ga4_measurement_id", 'G-abc"><script>'],
+      ["meta_pixel_id", "12ab"],
+      ["google_site_verification", "<meta name=x>"],
+    ] as const) {
+      expect(
+        await errorCode(
+          db.pool.query(`UPDATE shops SET ${column} = $2 WHERE id = $1`, [shop.shopId, value]),
+        ),
+        `${column}=${value}`,
+      ).toBe("23514");
+    }
+  });
+});

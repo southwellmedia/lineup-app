@@ -233,8 +233,10 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 /** Pulls the first message for each field out of a tRPC error's zod details. */
 export function fieldErrors(error: unknown): Record<string, string | undefined> {
   const fe = (
-    error as { data?: { zodError?: { fieldErrors?: Record<string, string[] | undefined> } } }
-  ).data?.zodError?.fieldErrors;
+    error as {
+      data?: { zodError?: { fieldErrors?: Record<string, string[] | undefined> } };
+    } | null
+  )?.data?.zodError?.fieldErrors;
   return fe ? Object.fromEntries(Object.entries(fe).map(([k, v]) => [k, v?.[0]])) : {};
 }
 
