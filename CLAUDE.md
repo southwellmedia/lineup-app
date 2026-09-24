@@ -120,6 +120,9 @@ supabase/seed.sql        # local demo shop
 - Env: `LINEUP_API_URL` (web app origin), optional `SITES_ROOT_DOMAIN`
   (enables `<slug>.<root>` hosts) and `LINEUP_API_BYPASS` (Vercel protection
   bypass secret while the web app is behind Vercel Authentication).
+  Declare them with `access: "secret"` so they're read at runtime: turbo's
+  strict env mode strips undeclared vars from builds, and Astro requires
+  `public` server vars at build time.
 - Book links go through `bookingLink()` so attribution (`src=website`) is
   always set. Pages cache for 60s at the edge.
 
