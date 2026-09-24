@@ -79,6 +79,9 @@ export function WebsiteOverview() {
                   style={{ width: `${(done / total) * 100}%` }}
                 />
               </div>
+              <p className="mb-3 text-sm text-muted">
+                Shop details live in Settings, bios in Team, descriptions in Services.
+              </p>
               <ul className="divide-y divide-line">
                 {data.checklist.map((item) => (
                   <li key={item.id} className="flex items-start gap-3 py-2.5">
@@ -101,14 +104,17 @@ export function WebsiteOverview() {
                         <span className="block text-sm text-muted">{item.detail}</span>
                       ) : null}
                     </span>
-                    {item.done ? null : (
-                      <Link
-                        href={`${base}/${SECTION_HREF[item.section]}` as Route}
-                        className="shrink-0 text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-ink"
-                      >
-                        Add
-                      </Link>
-                    )}
+                    <Link
+                      href={`${base}/${SECTION_HREF[item.section]}` as Route}
+                      aria-label={`${item.done ? "Edit" : "Add"} ${item.label.toLowerCase()}`}
+                      className={
+                        item.done
+                          ? "shrink-0 text-sm font-semibold text-muted underline decoration-line underline-offset-4 hover:text-ink hover:decoration-ink"
+                          : "shrink-0 text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-ink"
+                      }
+                    >
+                      {item.done ? "Edit" : "Add"}
+                    </Link>
                   </li>
                 ))}
               </ul>
