@@ -1,0 +1,121 @@
+---
+import { brandStyle, formatPhone, jsonLdScript } from "@lineup/site-kit";
+import type { PageContext } from "../lib/page";
+import "../styles/global.css";
+
+interface Props {
+  ctx: PageContext;
+  title: string;
+  description: string;
+  path: string;
+  jsonLd?: unknown;
+}
+
+const { ctx, title, description, path, jsonLd } = Astro.props;
+const { site, base } = ctx;
+const style = Object.entries(brandStyle(site.shop.brandColor))
+  .map(([k, v]) => `${k}:${v}`)
+  .join(";");
+const canonical = ctx.canonical(path);
+const nav = [
+  { href: `${base}/#menu`, label: "Menu" },
+  { href: `${base}/#barbers`, label: "Barbers" },
+  { href: `${base}/#visit`, label: "Visit" },
+];
+---
+
+<!doctype html>
+<html lang="en" style={style}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.shop.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="theme-color" content="#f5f1ea" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,600..900&family=Instrument+Sans:wght@400..700&family=Instrument+Serif:ital@1&display=swap"
+    />
+    {jsonLd ? <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} /> : null}
+  </head>
+  <body class="min-h-dvh pb-20 font-sans antialiased md:pb-0">
+    <a
+      href="#main"
+      class="sr-only rounded-full bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50"
+      >Skip to content</a
+    >
+
+    <header class="sticky top-0 z-30 border-b border-line/70 bg-paper/85 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+        <a href={`${base}/`} class="flex min-w-0 items-center gap-2.5">
+          <span aria-hidden="true" class="pole h-7 w-2 shrink-0 animate-pole rounded-full ring-2 ring-ink"></span>
+          <span class="truncate font-display text-xl font-black uppercase tracking-tight sm:text-2xl">{site.shop.name}</span>
+        </a>
+        <nav aria-label="Main" class="hidden items-center gap-7 font-semibold md:flex">
+          {nav.map((item) => <a href={item.href} class="hover:text-brand">{item.label}</a>)}
+        </nav>
+        <a
+          href={ctx.book()}
+          class="shrink-0 whitespace-nowrap rounded-full bg-brand px-4 py-2 font-semibold sm:px-5 sm:py-2.5 text-brand-ink shadow-[3px_3px_0_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+          >Book now</a
+        >
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="mt-24 bg-ink text-paper">
+      <div class="pole h-2"></div>
+      <div class="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3">
+        <div>
+          <p class="font-display text-4xl font-black uppercase leading-none">{site.shop.name}</p>
+          {site.shop.tagline ? <p class="mt-2 font-serif text-xl text-paper/70">{site.shop.tagline}</p> : null}
+        </div>
+        <div class="space-y-1 text-paper/80">
+          {
+            site.shop.address ? (
+              <p>
+                {site.shop.address.line}
+                <br />
+                {[site.shop.address.city, site.shop.address.region].filter(Boolean).join(", ")} {site.shop.address.postalCode}
+              </p>
+            ) : null
+          }
+          {site.shop.phone ? <p><a href={`tel:${site.shop.phone}`} class="hover:text-paper">{formatPhone(site.shop.phone)}</a></p> : null}
+          {
+            site.shop.instagram ? (
+              <p>
+                <a href={`https://www.instagram.com/${site.shop.instagram}/`} rel="noopener" class="hover:text-paper">
+                  @{site.shop.instagram}
+                </a>
+              </p>
+            ) : null
+          }
+        </div>
+        <div class="sm:text-right">
+          <a href={ctx.book()} class="inline-block rounded-full bg-brand px-6 py-3 font-semibold text-brand-ink">Book online</a>
+          <p class="mt-6 text-sm text-paper/50">
+            © {new Date().getFullYear()} {site.shop.name} · Booking by <span class="font-semibold text-paper/70">Lineup</span>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Always-visible booking on phones -->
+    <div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/90 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+      <a href={ctx.book()} class="block rounded-full bg-brand py-3.5 text-center text-lg font-semibold text-brand-ink shadow-[3px_3px_0_0_var(--color-ink)]">
+        Book an appointment
+      </a>
+    </div>
+  </body>
+</html>

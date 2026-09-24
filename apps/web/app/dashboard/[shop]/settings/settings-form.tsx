@@ -17,9 +17,11 @@ import {
   PageHeader,
   Select,
   Switch,
+  Textarea,
   toCents,
 } from "@/components/ui";
-import { brandStyle, DEFAULT_BRAND } from "@/lib/shop/brand";
+import { formatPhone } from "@/lib/dashboard/summary";
+import { brandStyle, DEFAULT_BRAND } from "@lineup/site-kit";
 import { slugify } from "@/lib/shop/slug";
 import { useTRPC } from "@/trpc/client";
 
@@ -66,6 +68,16 @@ export function SettingsForm() {
     lateCancelFee: dollars(data.late_cancel_fee_cents),
     noShowFee: dollars(data.no_show_fee_cents),
     shareClients: data.share_clients_between_staff,
+    tagline: data.tagline ?? "",
+    about: data.about ?? "",
+    phone: data.phone ? formatPhone(data.phone) : "",
+    email: data.email ?? "",
+    instagram: data.instagram ?? "",
+    addressLine: data.address_line ?? "",
+    city: data.city ?? "",
+    region: data.region ?? "",
+    postalCode: data.postal_code ?? "",
+    neighborhood: data.neighborhood ?? "",
   });
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [message, setMessage] = useState<{ tone: "error" | "success"; text: string } | null>(null);
@@ -104,6 +116,16 @@ export function SettingsForm() {
         lateCancelFeeCents: lateCancel,
         noShowFeeCents: noShow,
         shareClientsBetweenStaff: form.shareClients,
+        tagline: form.tagline,
+        about: form.about,
+        phone: form.phone,
+        email: form.email,
+        instagram: form.instagram,
+        addressLine: form.addressLine,
+        city: form.city,
+        region: form.region,
+        postalCode: form.postalCode,
+        neighborhood: form.neighborhood,
       });
       await queryClient.invalidateQueries({ queryKey: trpc.settings.pathKey() });
       if (saved.slug !== shop.slug) {
@@ -188,6 +210,110 @@ export function SettingsForm() {
                 </a>
               </div>
             </Field>
+          </div>
+        </Card>
+
+        <Card>
+          <CardTitle>Contact &amp; location</CardTitle>
+          <p className="-mt-2 mb-4 text-sm text-muted">
+            Shown on your website and booking page, and used for Google.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Tagline"
+              htmlFor="s-tagline"
+              error={errors.tagline}
+              className="sm:col-span-2"
+            >
+              <Input
+                id="s-tagline"
+                maxLength={120}
+                value={form.tagline}
+                onChange={(e) => set("tagline", e.target.value)}
+                placeholder="Sharp fades. No waiting around."
+              />
+            </Field>
+            <Field label="About" htmlFor="s-about" error={errors.about} className="sm:col-span-2">
+              <Textarea
+                id="s-about"
+                rows={3}
+                maxLength={2000}
+                value={form.about}
+                onChange={(e) => set("about", e.target.value)}
+                placeholder="Who you are, how long you've been cutting, what you're known for."
+              />
+            </Field>
+            <Field label="Shop phone" htmlFor="s-phone" error={errors.phone}>
+              <Input
+                id="s-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+              />
+            </Field>
+            <Field label="Instagram" htmlFor="s-ig" error={errors.instagram}>
+              <div className="flex items-center rounded-xl border border-line bg-card pl-3.5 focus-within:border-ink">
+                <span className="text-muted">@</span>
+                <input
+                  id="s-ig"
+                  value={form.instagram}
+                  onChange={(e) => set("instagram", e.target.value)}
+                  className="w-full bg-transparent py-2.5 pl-0.5 pr-3 outline-none"
+                />
+              </div>
+            </Field>
+            <Field label="Email (public)" htmlFor="s-email" error={errors.email}>
+              <Input
+                id="s-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+              />
+            </Field>
+            <Field
+              label="Neighborhood"
+              htmlFor="s-hood"
+              error={errors.neighborhood}
+              hint="Used in your site's local search text."
+            >
+              <Input
+                id="s-hood"
+                value={form.neighborhood}
+                onChange={(e) => set("neighborhood", e.target.value)}
+                placeholder="Oak Cliff"
+              />
+            </Field>
+            <Field
+              label="Street address"
+              htmlFor="s-addr"
+              error={errors.addressLine}
+              className="sm:col-span-2"
+            >
+              <Input
+                id="s-addr"
+                value={form.addressLine}
+                onChange={(e) => set("addressLine", e.target.value)}
+              />
+            </Field>
+            <Field label="City" htmlFor="s-city" error={errors.city}>
+              <Input id="s-city" value={form.city} onChange={(e) => set("city", e.target.value)} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="State" htmlFor="s-region" error={errors.region}>
+                <Input
+                  id="s-region"
+                  value={form.region}
+                  onChange={(e) => set("region", e.target.value)}
+                />
+              </Field>
+              <Field label="ZIP" htmlFor="s-zip" error={errors.postalCode}>
+                <Input
+                  id="s-zip"
+                  value={form.postalCode}
+                  onChange={(e) => set("postalCode", e.target.value)}
+                />
+              </Field>
+            </div>
           </div>
         </Card>
 

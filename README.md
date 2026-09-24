@@ -37,7 +37,15 @@ The web app (`apps/web`) has:
   - **Settings:** name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
 
-Next up: websites (multi-tenant Astro), then the calendar week view.
+Shop websites (`apps/sites`, Astro) render each shop's site from the public
+site API (`/api/public/sites/<slug>`): home page with menu, barbers, hours
+and map link; a page per service and barber; sitemap, robots and
+HairSalon JSON-LD. Every "Book" button deep-links into the booking flow with
+the service or barber preselected and `src=website`. Locally the site lives at
+`http://localhost:4321/<shop-slug>`; in production it also resolves
+`<slug>.<SITES_ROOT_DOMAIN>` and custom domains.
+
+Next up: the calendar week view and walk-ins, then Twilio texts.
 
 ## Getting started
 

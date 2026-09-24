@@ -134,3 +134,25 @@ describe("shops.brand_color", () => {
     ).toBe("23514");
   });
 });
+
+describe("shop profile", () => {
+  it("stores contact details and rejects malformed ones", async () => {
+    const shop = await createShop(db.pool);
+    await db.pool.query(
+      `UPDATE shops SET tagline = 'Fades since 2009', phone = '+12145550100', instagram = 'southside.cuts',
+         address_line = '123 Main St', city = 'Dallas', region = 'TX', postal_code = '75208', neighborhood = 'Oak Cliff'
+       WHERE id = $1`,
+      [shop.shopId],
+    );
+    expect(
+      await errorCode(
+        db.pool.query("UPDATE shops SET phone = '214-555' WHERE id = $1", [shop.shopId]),
+      ),
+    ).toBe("23514");
+    expect(
+      await errorCode(
+        db.pool.query("UPDATE shops SET instagram = '@nope' WHERE id = $1", [shop.shopId]),
+      ),
+    ).toBe("23514");
+  });
+});

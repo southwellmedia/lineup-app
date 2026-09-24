@@ -31,12 +31,26 @@ const ANY = "any";
 /** How far ahead the date picker looks (the API allows up to 14 days per request). */
 const DAYS_AHEAD = 14;
 
-export function BookingFlow({ slug, source }: { slug: string; source: PublicSource }) {
+export function BookingFlow({
+  slug,
+  source,
+  preselect = {},
+}: {
+  slug: string;
+  source: PublicSource;
+  /** From ?service= and ?barber= links, e.g. on the shop's website. Ignored if they don't exist. */
+  preselect?: { serviceId?: string; barberId?: string };
+}) {
   const trpc = useTRPC();
   const { data: menu } = useSuspenseQuery(trpc.booking.shop.queryOptions({ slug }));
+  const preferredBarber = menu.barbers.some((b) => b.id === preselect.barberId)
+    ? preselect.barberId
+    : undefined;
 
   const [step, setStep] = useState<Step>("service");
-  const [mainId, setMainId] = useState<string | null>(null);
+  const [mainId, setMainId] = useState<string | null>(
+    () => menu.services.find((s) => s.id === preselect.serviceId && !s.isAddon)?.id ?? null,
+  );
   const [addonIds, setAddonIds] = useState<string[]>([]);
   const [barber, setBarber] = useState<string | null>(null);
   const [hold, setHold] = useState<(Hold & { staffId: string }) | null>(null);
@@ -86,6 +100,12 @@ export function BookingFlow({ slug, source }: { slug: string; source: PublicSour
             setAddonIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
           }
           onContinue={() => {
+            // Came from a barber's page: go straight to their times if they do all of it.
+            if (preferredBarber && eligibleBarbers.some((b) => b.id === preferredBarber)) {
+              setBarber(preferredBarber);
+              setStep("time");
+              return;
+            }
             setBarber(null);
             setStep("barber");
           }}

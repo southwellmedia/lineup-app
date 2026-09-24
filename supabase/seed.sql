@@ -39,3 +39,16 @@ INSERT INTO public.clients (shop_id, phone, name, preferred_staff_id, sms_consen
   ('00000000-0000-4000-8000-000000000001', '+12145550101', 'Jordan Ellis', '00000000-0000-4000-8000-000000000101', now()),
   ('00000000-0000-4000-8000-000000000001', '+12145550102', 'Luis Ramirez', '00000000-0000-4000-8000-000000000102', now()),
   ('00000000-0000-4000-8000-000000000001', '+12145550103', 'DeShawn Carter', NULL, NULL);
+
+-- Public profile for the shop's website.
+UPDATE public.shops SET
+  tagline = 'Sharp fades. No waiting around.',
+  about = 'A neighborhood barbershop in Oak Cliff since 2016. Walk in a regular, walk out looking right. Book online and skip the wait.',
+  phone = '+12145550199',
+  instagram = 'southsidecuts.demo',
+  address_line = '123 W Davis St',
+  city = 'Dallas', region = 'TX', postal_code = '75208',
+  neighborhood = 'Oak Cliff'
+WHERE id = '00000000-0000-4000-8000-000000000001';
+UPDATE public.staff SET bio = 'Owner. Fades, tapers and hot towel finishes.' WHERE id = '00000000-0000-4000-8000-000000000101';
+UPDATE public.staff SET bio = 'Designs, beard work and kids cuts. Se habla español.' WHERE id = '00000000-0000-4000-8000-000000000102';

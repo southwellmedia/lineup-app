@@ -1,13 +1,17 @@
 import { TRPCError } from "@trpc/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { brandStyle } from "@/lib/shop/brand";
+import { brandStyle } from "@lineup/site-kit";
 import { getQueryClient, HydrateClient, serverCaller, trpc } from "@/trpc/server";
 import { BookingFlow, type PublicSource } from "./booking-flow";
 
 type Props = {
   params: Promise<{ shopSlug: string }>;
-  searchParams: Promise<{ src?: string | string[] }>;
+  searchParams: Promise<{
+    src?: string | string[];
+    service?: string | string[];
+    barber?: string | string[];
+  }>;
 };
 
 /** `?src=` values a shop can put on its links, for attribution. */
@@ -37,7 +41,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BookingPage({ params, searchParams }: Props) {
   const { shopSlug } = await params;
-  const { src } = await searchParams;
+  const { src, service, barber } = await searchParams;
+  const uuid = (v: unknown) =>
+    typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v) ? v : undefined;
   const menu = await loadShop(shopSlug);
 
   // Seed the client cache so the flow renders instantly without refetching.
@@ -63,7 +69,11 @@ export default async function BookingPage({ params, searchParams }: Props) {
         />
       </header>
       <HydrateClient>
-        <BookingFlow slug={shopSlug} source={source} />
+        <BookingFlow
+          slug={shopSlug}
+          source={source}
+          preselect={{ serviceId: uuid(service), barberId: uuid(barber) }}
+        />
       </HydrateClient>
     </main>
   );

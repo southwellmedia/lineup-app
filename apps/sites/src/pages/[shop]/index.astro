@@ -1,0 +1,186 @@
+---
+import { formatPhone, formatPriceRange, hoursTable, localBusinessJsonLd, openStatus } from "@lineup/site-kit";
+import Site from "../../layouts/Site.astro";
+import { pageContext, placeName } from "../../lib/page";
+
+const ctx = await pageContext(Astro.params.shop, Astro.url, Astro.locals.hostMode);
+if (!ctx) return new Response(null, { status: 404, statusText: "Not found" });
+
+const { site, base } = ctx;
+const place = placeName(site);
+const status = openStatus(site.hours, site.shop.timezone, new Date());
+const mains = site.services.filter((s) => !s.isAddon);
+const addons = site.services.filter((s) => s.isAddon);
+const hours = hoursTable(site.hours);
+const mapsUrl = site.shop.address
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      [site.shop.name, site.shop.address.line, site.shop.address.city, site.shop.address.region].filter(Boolean).join(", "),
+    )}`
+  : null;
+
+const title = place ? `${site.shop.name} · Barbershop in ${place}` : `${site.shop.name} · Barbershop`;
+const description =
+  site.shop.about ??
+  `${site.shop.tagline ?? "Fades, tapers and more"}. Book online with ${site.barbers.map((b) => b.name).join(", ")}${
+    place ? ` in ${place}` : ""
+  }.`;
+
+// Cache at the edge briefly; menus and hours change rarely.
+Astro.response.headers.set("cache-control", "public, s-maxage=60, stale-while-revalidate=600");
+---
+
+<Site ctx={ctx} title={title} description={description} path="/" jsonLd={localBusinessJsonLd(site, ctx.canonical("/"))}>
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="mx-auto grid max-w-6xl gap-10 px-5 pb-16 pt-14 md:grid-cols-[1fr_auto] md:pt-24">
+      <div class="animate-rise">
+        <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 text-sm font-semibold">
+          <span class={`size-2 rounded-full ${status.open ? "bg-emerald-600" : "bg-muted"}`}></span>
+          {status.text}
+        </p>
+        <h1 class="font-display text-[clamp(3rem,14vw,11rem)] font-black uppercase leading-[0.82] tracking-tight break-words">
+          {site.shop.name}
+        </h1>
+        {site.shop.tagline ? <p class="mt-5 max-w-xl font-serif text-3xl text-muted md:text-4xl">{site.shop.tagline}</p> : null}
+        {place ? <p class="mt-3 text-sm font-semibold uppercase tracking-[0.2em] text-muted">Barbershop · {place}</p> : null}
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a
+            href={ctx.book()}
+            class="rounded-full bg-brand px-8 py-4 text-lg font-semibold text-brand-ink shadow-[4px_4px_0_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+            >Book an appointment</a
+          >
+          {
+            site.shop.phone ? (
+              <a href={`tel:${site.shop.phone}`} class="rounded-full border-2 border-ink px-8 py-4 text-lg font-semibold hover:bg-ink hover:text-paper">
+                Call {formatPhone(site.shop.phone)}
+              </a>
+            ) : null
+          }
+        </div>
+      </div>
+      <div aria-hidden="true" class="hidden items-end md:flex">
+        <div class="pole h-80 w-10 animate-pole rounded-full ring-4 ring-ink"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu board -->
+  <section id="menu" class="scroll-mt-20 bg-ink text-paper">
+    <div class="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <h2 class="font-display text-6xl font-black uppercase leading-none md:text-8xl">The menu</h2>
+        <p class="max-w-sm font-serif text-xl text-paper/70">Prices can vary by barber. You'll see the exact total before you book.</p>
+      </div>
+      <ul class="grid gap-x-16 gap-y-6 md:grid-cols-2">
+        {
+          mains.map((s) => (
+            <li>
+              <a href={`${base}/services/${s.slug}`} class="group block">
+                <div class="flex items-baseline gap-3">
+                  <span class="font-display text-3xl font-extrabold uppercase group-hover:text-brand">{s.name}</span>
+                  <span class="leader border-paper/25" />
+                  <span class="font-display text-3xl font-extrabold tabular-nums">{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
+                </div>
+                <p class="mt-1 text-paper/60">
+                  {s.durationMinutes} min{s.description ? ` · ${s.description}` : ""}
+                </p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        addons.length ? (
+          <div class="mt-14">
+            <h3 class="mb-5 font-serif text-3xl text-paper/80">Add something</h3>
+            <ul class="flex flex-wrap gap-3">
+              {addons.map((s) => (
+                <li class="rounded-full border border-paper/25 px-5 py-2.5">
+                  <span class="font-semibold">{s.name}</span>
+                  <span class="ml-2 text-paper/70 tabular-nums">+{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null
+      }
+      <a href={ctx.book()} class="mt-12 inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-brand-ink">Pick a time</a>
+    </div>
+  </section>
+
+  <!-- Barbers -->
+  <section id="barbers" class="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:py-24">
+    <h2 class="mb-10 font-display text-6xl font-black uppercase leading-none md:text-8xl">The chairs</h2>
+    <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        site.barbers.map((b) => (
+          <li class="flex flex-col rounded-3xl border-2 border-ink bg-card p-6 shadow-[6px_6px_0_0_var(--color-ink)]">
+            <span aria-hidden="true" class="grid size-20 place-items-center rounded-full bg-brand font-display text-5xl font-black uppercase text-brand-ink">
+              {b.name.slice(0, 1)}
+            </span>
+            <h3 class="mt-5 font-display text-4xl font-black uppercase">
+              <a href={`${base}/barbers/${b.slug}`} class="hover:text-brand">{b.name}</a>
+            </h3>
+            {b.bio ? <p class="mt-2 flex-1 text-lg text-muted">{b.bio}</p> : <div class="flex-1" />}
+            <a href={ctx.book({ barber: b.id })} class="mt-6 self-start rounded-full bg-ink px-6 py-3 font-semibold text-paper hover:bg-brand hover:text-brand-ink">
+              Book with {b.name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    site.shop.about ? (
+      <section class="mx-auto max-w-4xl px-5 py-8">
+        <p class="font-serif text-3xl leading-snug md:text-5xl">“{site.shop.about}”</p>
+      </section>
+    ) : null
+  }
+
+  <!-- Visit -->
+  <section id="visit" class="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 md:py-24">
+    <h2 class="mb-10 font-display text-6xl font-black uppercase leading-none md:text-8xl">Pull up</h2>
+    <div class="grid gap-8 md:grid-cols-2">
+      <div class="rounded-3xl border-2 border-ink bg-card p-6">
+        <h3 class="font-display text-3xl font-black uppercase">Hours</h3>
+        <dl class="mt-4 divide-y divide-line">
+          {
+            hours.map((h) => (
+              <div class="flex justify-between gap-4 py-2.5">
+                <dt class="font-semibold">{h.day}</dt>
+                <dd class={h.text === "Closed" ? "text-muted" : "text-right tabular-nums"}>{h.text}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+      <div class="flex flex-col gap-5 rounded-3xl bg-ink p-6 text-paper">
+        <h3 class="font-display text-3xl font-black uppercase">Find us</h3>
+        {
+          site.shop.address ? (
+            <address class="text-2xl not-italic leading-snug">
+              {site.shop.address.line}
+              <br />
+              {[site.shop.address.city, site.shop.address.region].filter(Boolean).join(", ")} {site.shop.address.postalCode}
+            </address>
+          ) : (
+            <p class="text-paper/70">Address coming soon.</p>
+          )
+        }
+        <div class="mt-auto flex flex-wrap gap-3">
+          {mapsUrl ? <a href={mapsUrl} rel="noopener" class="rounded-full bg-paper px-5 py-3 font-semibold text-ink">Directions</a> : null}
+          {site.shop.phone ? <a href={`tel:${site.shop.phone}`} class="rounded-full border border-paper/40 px-5 py-3 font-semibold">Call</a> : null}
+          {
+            site.shop.instagram ? (
+              <a href={`https://www.instagram.com/${site.shop.instagram}/`} rel="noopener" class="rounded-full border border-paper/40 px-5 py-3 font-semibold">
+                Instagram
+              </a>
+            ) : null
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</Site>

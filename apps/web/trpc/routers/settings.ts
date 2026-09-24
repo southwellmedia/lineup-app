@@ -1,11 +1,20 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { normalizePhone } from "@/lib/booking/phone";
 import { SLUG_PATTERN } from "@/lib/shop/slug";
 import { unwrap } from "../errors";
 import { managerProcedure, router, shopProcedure } from "../init";
 
 const SETTINGS_COLUMNS =
-  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff" as const;
+  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood" as const;
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => v || null)
+    .nullable();
 
 export const settingsRouter = router({
   get: shopProcedure.query(async ({ ctx }) => {
@@ -37,6 +46,49 @@ export const settingsRouter = router({
         lateCancelFeeCents: z.number().int().min(0).max(100_000),
         noShowFeeCents: z.number().int().min(0).max(100_000),
         shareClientsBetweenStaff: z.boolean(),
+        tagline: optionalText(120),
+        about: optionalText(2000),
+        phone: z
+          .string()
+          .trim()
+          .transform((value, ctx) => {
+            if (!value) return null;
+            const e164 = normalizePhone(value);
+            if (!e164) {
+              ctx.addIssue({ code: "custom", message: "Enter a valid phone number." });
+              return z.NEVER;
+            }
+            return e164;
+          })
+          .nullable(),
+        email: z
+          .string()
+          .trim()
+          .toLowerCase()
+          .email()
+          .or(z.literal(""))
+          .transform((v) => v || null)
+          .nullable(),
+        instagram: z
+          .string()
+          .trim()
+          .transform((v) =>
+            v
+              .replace(/^@/, "")
+              .replace(/^https?:\/\/(www\.)?instagram\.com\//, "")
+              .replace(/\/$/, ""),
+          )
+          .refine(
+            (v) => v === "" || /^[A-Za-z0-9._]{1,30}$/.test(v),
+            "Use just the handle, like southsidecuts.",
+          )
+          .transform((v) => v || null)
+          .nullable(),
+        addressLine: optionalText(200),
+        city: optionalText(100),
+        region: optionalText(100),
+        postalCode: optionalText(20),
+        neighborhood: optionalText(100),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -57,6 +109,16 @@ export const settingsRouter = router({
           late_cancel_fee_cents: input.lateCancelFeeCents,
           no_show_fee_cents: input.noShowFeeCents,
           share_clients_between_staff: input.shareClientsBetweenStaff,
+          tagline: input.tagline,
+          about: input.about,
+          phone: input.phone,
+          email: input.email,
+          instagram: input.instagram,
+          address_line: input.addressLine,
+          city: input.city,
+          region: input.region,
+          postal_code: input.postalCode,
+          neighborhood: input.neighborhood,
         })
         .eq("id", ctx.shopId)
         .select(SETTINGS_COLUMNS)

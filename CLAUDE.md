@@ -12,7 +12,7 @@ Architecture follows the MAD Stack shape, but this is its own product.
 | ---------------------- | ------------------------------------------------------------ |
 | Web app, booking pages | Next.js 16 App Router, tRPC v11, Tailwind v4 (`apps/web`)    |
 | Barber app             | Expo (not started)                                           |
-| Shop websites          | Astro, multi-tenant templates (not started)                  |
+| Shop websites          | Astro 7 SSR, multi-tenant (`apps/sites`)                     |
 | Database and auth      | Supabase Postgres + Auth, Supabase client SDK, no ORM        |
 | Validation             | Zod 4 using the Zod 3 compat API (`import { z } from "zod"`) |
 | Payments               | Stripe Connect (not started; cash works today)               |
@@ -30,8 +30,13 @@ apps/web/                # Next.js: booking pages + the tRPC booking API
   components/ui.tsx      # shared admin primitives (Button, Field, Input, Switch, Card…)
   app/login, app/auth/   # magic-link sign-in, callback, sign-out
   lib/booking/           # server-side booking context + pure helpers (tested)
+  app/api/public/sites/  # public site data (by slug, or ?domain=) for apps/sites
   lib/supabase/          # user client (RLS), admin client (secret key), browser client
   proxy.ts               # refreshes Supabase auth cookies (Next 16's renamed middleware)
+apps/sites/              # Astro: shop websites (SSR, one deployment serves every shop)
+  src/middleware.ts      # subdomain / custom domain → /<slug>/… rewrite
+  src/pages/[shop]/      # home, services/[service], barbers/[barber], sitemap
+packages/site-kit/       # SiteData contract, hours, prices, JSON-LD, brand colors
 packages/scheduling/     # availability engine: pure TS, no I/O
 packages/db/             # generated Supabase types + database test suite
 supabase/migrations/     # append-only SQL, timestamped (YYYYMMDDHHMMSS_name.sql)
@@ -107,6 +112,17 @@ supabase/seed.sql        # local demo shop
 - `payments.recorded_by` has no foreign key on purpose: the ledger is
   immutable, so it can't be cleared when a user is deleted.
 
+## Shop websites
+
+- `apps/sites` never talks to Supabase. It reads `SiteData` (from
+  `@lineup/site-kit`) from the web app's public site API, which returns only
+  public fields, bookable barbers and services someone offers.
+- Env: `LINEUP_API_URL` (web app origin), optional `SITES_ROOT_DOMAIN`
+  (enables `<slug>.<root>` hosts) and `LINEUP_API_BYPASS` (Vercel protection
+  bypass secret while the web app is behind Vercel Authentication).
+- Book links go through `bookingLink()` so attribution (`src=website`) is
+  always set. Pages cache for 60s at the edge.
+
 ## Tenancy and security
 
 - The tenant is `shop_id`. A solo barber is a shop on the `solo` plan with one
@@ -148,7 +164,7 @@ hosted project has the seed's demo shop, "Southside Cuts" (`/book/southside-cuts
 
 ```bash
 pnpm install
-pnpm dev             # web app on http://localhost:3000
+pnpm dev             # web on http://localhost:3000, sites on http://localhost:4321
 pnpm typecheck
 pnpm lint
 pnpm test            # needs Postgres 15+ with btree_gist; see DATABASE_URL below

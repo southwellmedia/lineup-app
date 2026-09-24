@@ -445,6 +445,16 @@ export type Database = {
       };
       shops: {
         Row: {
+          about: string | null;
+          address_line: string | null;
+          city: string | null;
+          email: string | null;
+          instagram: string | null;
+          neighborhood: string | null;
+          phone: string | null;
+          postal_code: string | null;
+          region: string | null;
+          tagline: string | null;
           brand_color: string | null;
           cancellation_window_minutes: number;
           created_at: string;
@@ -463,6 +473,16 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          about?: string | null;
+          address_line?: string | null;
+          city?: string | null;
+          email?: string | null;
+          instagram?: string | null;
+          neighborhood?: string | null;
+          phone?: string | null;
+          postal_code?: string | null;
+          region?: string | null;
+          tagline?: string | null;
           brand_color?: string | null;
           cancellation_window_minutes?: number;
           created_at?: string;
@@ -481,6 +501,16 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          about?: string | null;
+          address_line?: string | null;
+          city?: string | null;
+          email?: string | null;
+          instagram?: string | null;
+          neighborhood?: string | null;
+          phone?: string | null;
+          postal_code?: string | null;
+          region?: string | null;
+          tagline?: string | null;
           brand_color?: string | null;
           cancellation_window_minutes?: number;
           created_at?: string;

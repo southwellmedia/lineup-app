@@ -1,0 +1,66 @@
+---
+import { formatPriceRange } from "@lineup/site-kit";
+import Site from "../../../layouts/Site.astro";
+import { pageContext, placeName } from "../../../lib/page";
+
+const ctx = await pageContext(Astro.params.shop, Astro.url, Astro.locals.hostMode);
+const barber = ctx?.site.barbers.find((b) => b.slug === Astro.params.barber);
+if (!ctx || !barber) return new Response(null, { status: 404, statusText: "Not found" });
+
+const { site, base } = ctx;
+const place = placeName(site);
+const services = site.services.filter((s) => barber.serviceIds.includes(s.id));
+const path = `/barbers/${barber.slug}`;
+const title = `${barber.name}, barber${place ? ` in ${place}` : ""} · ${site.shop.name}`;
+const description = `${barber.bio ?? `${barber.name} cuts at ${site.shop.name}.`} Book with ${barber.name} online${place ? ` in ${place}` : ""}.`;
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: barber.name,
+  jobTitle: "Barber",
+  ...(barber.bio ? { description: barber.bio } : {}),
+  worksFor: { "@id": `${ctx.canonical("/")}#business` },
+};
+
+Astro.response.headers.set("cache-control", "public, s-maxage=60, stale-while-revalidate=600");
+---
+
+<Site ctx={ctx} title={title} description={description} path={path} jsonLd={jsonLd}>
+  <article class="mx-auto max-w-4xl px-5 pt-14">
+    <a href={`${base}/#barbers`} class="text-sm font-semibold text-muted hover:text-ink">← The chairs</a>
+    <div class="mt-6 flex flex-wrap items-center gap-6">
+      <span aria-hidden="true" class="grid size-28 place-items-center rounded-full bg-brand font-display text-7xl font-black uppercase text-brand-ink ring-4 ring-ink">
+        {barber.name.slice(0, 1)}
+      </span>
+      <div>
+        <h1 class="font-display text-[clamp(3.5rem,11vw,8rem)] font-black uppercase leading-[0.85] tracking-tight">{barber.name}</h1>
+        <p class="mt-2 font-serif text-3xl text-muted">at {site.shop.name}</p>
+      </div>
+    </div>
+    {barber.bio ? <p class="mt-8 max-w-2xl text-2xl">{barber.bio}</p> : null}
+
+    <a
+      href={ctx.book({ barber: barber.id })}
+      class="mt-10 inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-brand-ink shadow-[4px_4px_0_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+      >Book with {barber.name}</a
+    >
+
+    <section class="mt-16">
+      <h2 class="font-display text-4xl font-black uppercase">{barber.name}'s menu</h2>
+      <ul class="mt-5 divide-y divide-line rounded-3xl border-2 border-ink bg-card">
+        {
+          services.map((s) => (
+            <li>
+              <a href={ctx.book({ service: s.id, barber: barber.id })} class="flex items-baseline gap-3 p-5 hover:bg-paper">
+                <span class="text-lg font-semibold">{s.name}</span>
+                <span class="text-sm text-muted">{s.durationMinutes} min</span>
+                <span class="leader" />
+                <span class="font-semibold tabular-nums">{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </article>
+</Site>

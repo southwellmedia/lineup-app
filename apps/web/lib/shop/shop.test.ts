@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandInk, brandStyle, DEFAULT_BRAND } from "./brand";
+import { brandInk, brandStyle, DEFAULT_BRAND } from "@lineup/site-kit";
 import { SLUG_PATTERN, slugify, uniqueSlug } from "./slug";
 
 describe("brand colors", () => {
