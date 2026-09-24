@@ -53,12 +53,16 @@ export function ClientProfile({ clientId }: { clientId: string }) {
       />
 
       <div className="mb-6 flex flex-wrap gap-x-5 gap-y-1 text-lg">
-        <a
-          href={`tel:${client.phone}`}
-          className="font-semibold underline-offset-4 hover:underline"
-        >
-          {formatPhone(client.phone)}
-        </a>
+        {client.phone ? (
+          <a
+            href={`tel:${client.phone}`}
+            className="font-semibold underline-offset-4 hover:underline"
+          >
+            {formatPhone(client.phone)}
+          </a>
+        ) : (
+          <span className="text-muted">No phone number</span>
+        )}
         {client.email ? (
           <a
             href={`mailto:${client.email}`}
@@ -154,7 +158,7 @@ function EditClient({ data, onClose }: { data: Detail; onClose: () => void }) {
   const c = data.client;
   const [form, setForm] = useState({
     name: c.name,
-    phone: formatPhone(c.phone),
+    phone: c.phone ? formatPhone(c.phone) : "",
     email: c.email ?? "",
     notes: c.notes ?? "",
     preferredStaffId: c.preferredStaffId ?? "",

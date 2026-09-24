@@ -4,7 +4,9 @@ import { normalizePhone } from "@/lib/booking/phone";
 import { unwrap } from "../errors";
 import { router, shopProcedure } from "../init";
 
+/** Optional: walk-ins may not leave a number. Blank → null. */
 const phone = z.string().transform((value, ctx) => {
+  if (!value.trim()) return null;
   const e164 = normalizePhone(value);
   if (!e164) {
     ctx.addIssue({ code: "custom", message: "Enter a valid phone number." });

@@ -104,7 +104,9 @@ export function ClientList() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{c.name}</p>
-                  <p className="truncate text-sm text-muted">{formatPhone(c.phone)}</p>
+                  <p className="truncate text-sm text-muted">
+                    {c.phone ? formatPhone(c.phone) : "Walk-in, no phone"}
+                  </p>
                 </div>
                 <div className="hidden text-right text-sm sm:block">
                   <p className="font-semibold">
@@ -177,7 +179,12 @@ function AddClient({ onClose }: { onClose: () => void }) {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </Field>
-          <Field label="Mobile number" htmlFor="c-phone" error={errors.phone}>
+          <Field
+            label="Mobile number"
+            htmlFor="c-phone"
+            error={errors.phone}
+            hint="Needed for reminders. Leave blank for a walk-in who didn't give one."
+          >
             <Input
               id="c-phone"
               type="tel"

@@ -30,6 +30,9 @@ The web app (`apps/web`) has:
 - **Admin** at `/dashboard` (magic-link sign-in at `/login`):
   - **Today:** the day's book, totals, check-in with a live "in the chair"
     timer, mark paid (cash or other, with tip), no-show and cancel.
+  - **Calendar:** day view (a column per barber) and week view, with
+    working hours, breaks and time off. Book phone calls and walk-ins from
+    any slot, move bookings between times and barbers, cancel.
   - **Clients:** search, profiles with history, notes, add client, CSV export.
   - **Services:** menu, add-ons, prices, durations, deposits, per-barber
     pricing, ordering.
@@ -47,7 +50,7 @@ the service or barber preselected and `src=website`. Locally the site lives at
 `http://localhost:4321/<shop-slug>`; in production it also resolves
 `<slug>.<SITES_ROOT_DOMAIN>` and custom domains.
 
-Next up: the calendar week view and walk-ins, then Twilio texts.
+Next up: website analytics, then Twilio texts.
 
 ## Getting started
 

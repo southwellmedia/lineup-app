@@ -65,6 +65,12 @@ export function DayBoard(props: { date: string; today: string }) {
           <DayLink href={dayHref(d.plus({ days: 1 }).toISODate() ?? props.date)} label="Next day">
             →
           </DayLink>
+          <Link
+            href={`/dashboard/${shop.slug}/calendar?walkin=1` as Route}
+            className="ml-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-brand hover:text-brand-ink"
+          >
+            + Walk-in
+          </Link>
         </nav>
       </div>
 
@@ -335,7 +341,7 @@ function AppointmentCard(props: {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold">{appt.client?.name ?? "Client"}</p>
-              {appt.client ? (
+              {appt.client?.phone ? (
                 <a
                   href={`tel:${appt.client.phone}`}
                   className="text-sm text-muted underline-offset-4 hover:underline"

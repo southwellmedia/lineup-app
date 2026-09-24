@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { inferRouterOutputs } from "@trpc/server";
 import { DateTime } from "luxon";
 import type { Route } from "next";
@@ -398,17 +398,27 @@ function TimeOffCard({ staffId, timeOff }: { staffId: string; timeOff: Detail["t
   });
   const [error, setError] = useState<string | null>(null);
 
+  const zone = { zone: shop.timezone };
+  const start = wholeDays
+    ? DateTime.fromISO(form.from, zone).startOf("day")
+    : DateTime.fromISO(`${form.from}T${form.start}`, zone);
+  const end = wholeDays
+    ? DateTime.fromISO(form.to, zone).plus({ days: 1 }).startOf("day")
+    : DateTime.fromISO(`${form.from}T${form.end}`, zone);
+  const validRange = start.isValid && end.isValid && end > start;
+
+  // Bookings already in the window stay booked; warn so they can be moved.
+  const conflicts = useQuery(
+    trpc.calendar.conflicts.queryOptions(
+      { shopId: shop.id, staffId, start: start.toISO() ?? "", end: end.toISO() ?? "" },
+      { enabled: validRange },
+    ),
+  );
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
-    const zone = { zone: shop.timezone };
-    const start = wholeDays
-      ? DateTime.fromISO(form.from, zone).startOf("day")
-      : DateTime.fromISO(`${form.from}T${form.start}`, zone);
-    const end = wholeDays
-      ? DateTime.fromISO(form.to, zone).plus({ days: 1 }).startOf("day")
-      : DateTime.fromISO(`${form.from}T${form.end}`, zone);
-    if (!start.isValid || !end.isValid || end <= start) {
+    if (!validRange) {
       setError("Check the dates: the end has to be after the start.");
       return;
     }
@@ -519,14 +529,37 @@ function TimeOffCard({ staffId, timeOff }: { staffId: string; timeOff: Detail["t
             />
           </Field>
         </div>
+        {validRange && conflicts.data?.length ? (
+          <div role="status" className="rounded-xl bg-danger/10 px-4 py-3 text-sm text-danger">
+            <p className="font-semibold">
+              {conflicts.data.length === 1
+                ? "1 booking falls in this time"
+                : `${conflicts.data.length} bookings fall in this time`}
+              . They stay booked until you move or cancel them.
+            </p>
+            <ul className="mt-2 space-y-1">
+              {conflicts.data.slice(0, 6).map((c) => {
+                const at = DateTime.fromISO(c.startsAt, zone);
+                return (
+                  <li key={c.id}>
+                    <Link
+                      href={
+                        `/dashboard/${shop.slug}/calendar?date=${at.toISODate() ?? ""}` as Route
+                      }
+                      className="underline underline-offset-4"
+                    >
+                      {c.clientName} · {at.toFormat("ccc, LLL d, h:mm a")}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
         {error ? <Notice tone="error">{error}</Notice> : null}
         <Button type="submit" variant="primary" disabled={add.isPending}>
           {add.isPending ? "Adding…" : "Add time off"}
         </Button>
-        <p className="text-sm text-muted">
-          Existing bookings aren&apos;t cancelled automatically. Check the day view and move or
-          cancel them.
-        </p>
       </form>
     </Card>
   );

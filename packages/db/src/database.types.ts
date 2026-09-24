@@ -169,7 +169,7 @@ export type Database = {
           marketing_consent_at: string | null;
           name: string;
           notes: string | null;
-          phone: string;
+          phone: string | null;
           preferred_staff_id: string | null;
           shop_id: string;
           sms_consent_at: string | null;
@@ -183,7 +183,7 @@ export type Database = {
           marketing_consent_at?: string | null;
           name: string;
           notes?: string | null;
-          phone: string;
+          phone?: string | null;
           preferred_staff_id?: string | null;
           shop_id: string;
           sms_consent_at?: string | null;
@@ -197,7 +197,7 @@ export type Database = {
           marketing_consent_at?: string | null;
           name?: string;
           notes?: string | null;
-          phone?: string;
+          phone?: string | null;
           preferred_staff_id?: string | null;
           shop_id?: string;
           sms_consent_at?: string | null;
@@ -871,6 +871,40 @@ export type Database = {
           updated_at: string;
           weekday: number;
         }[];
+      };
+      reschedule_appointment: {
+        Args: {
+          p_appointment_id: string;
+          p_staff_id: string;
+          p_starts_at: string;
+        };
+        Returns: {
+          blocked_until: string;
+          booked_by: Database["public"]["Enums"]["booking_actor"];
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
+          client_id: string | null;
+          client_note: string | null;
+          created_at: string;
+          deposit_cents: number;
+          ends_at: string;
+          hold_expires_at: string | null;
+          id: string;
+          shop_id: string;
+          source: Database["public"]["Enums"]["booking_source"];
+          staff_id: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["appointment_status"];
+          total_price_cents: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "appointments";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       record_manual_payment: {
         Args: {
