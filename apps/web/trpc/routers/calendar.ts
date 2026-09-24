@@ -62,7 +62,9 @@ export const calendarRouter = router({
           .overlaps("during", `[${from},${to})`),
         ctx.supabase
           .from("appointments")
-          .select("id, staff_id, client_id, status, starts_at, ends_at, source, client_note")
+          .select(
+            "id, staff_id, client_id, status, starts_at, ends_at, checked_in_at, source, client_note, total_price_cents",
+          )
           .eq("shop_id", ctx.shopId)
           .lt("starts_at", to)
           .gt("ends_at", from)
@@ -73,7 +75,7 @@ export const calendarRouter = router({
       const rows = unwrap(appointments);
       const ids = rows.map((a) => a.id);
       const clientIds = [...new Set(rows.flatMap((a) => (a.client_id ? [a.client_id] : [])))];
-      const [items, clients] = await Promise.all([
+      const [items, clients, balances] = await Promise.all([
         ids.length
           ? ctx.supabase
               .from("appointment_services")
@@ -83,9 +85,16 @@ export const calendarRouter = router({
         clientIds.length
           ? ctx.supabase.from("clients").select("id, name, phone").in("id", clientIds)
           : null,
+        ids.length
+          ? ctx.supabase
+              .from("appointment_balances")
+              .select("appointment_id, balance_due_cents, paid_cents")
+              .in("appointment_id", ids)
+          : null,
       ]);
       const itemRows = items ? unwrap(items) : [];
       const clientRows = clients ? unwrap(clients) : [];
+      const balanceRows = balances ? unwrap(balances) : [];
       const hourRows = unwrap(hours);
 
       const barbers = unwrap(staff).filter((s) => s.is_bookable);
@@ -130,12 +139,16 @@ export const calendarRouter = router({
         })),
         appointments: rows.map((a) => {
           const client = clientRows.find((c) => c.id === a.client_id);
+          const balance = balanceRows.find((b) => b.appointment_id === a.id);
           return {
             id: a.id,
             staffId: a.staff_id,
             status: a.status,
             startsAt: a.starts_at,
             endsAt: a.ends_at,
+            checkedInAt: a.checked_in_at,
+            priceCents: a.total_price_cents,
+            paid: (balance?.paid_cents ?? 0) > 0 && (balance?.balance_due_cents ?? 1) <= 0,
             source: a.source,
             note: a.client_note,
             client: client ? { name: client.name, phone: client.phone } : null,
@@ -284,6 +297,97 @@ export const calendarRouter = router({
         }),
       );
       return { ok: true };
+    }),
+
+  /**
+   * Everything the side panel shows for one booking: services and prices,
+   * payments, and the client's history with the shop. RLS decides access.
+   */
+  appointment: shopProcedure
+    .input(z.object({ appointmentId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const a = unwrap(
+        await ctx.supabase
+          .from("appointments")
+          .select(
+            "id, staff_id, client_id, status, starts_at, ends_at, checked_in_at, completed_at, source, booked_by, total_price_cents, deposit_cents, client_note, created_at",
+          )
+          .eq("shop_id", ctx.shopId)
+          .eq("id", input.appointmentId)
+          .maybeSingle(),
+      );
+      if (!a) throw new TRPCError({ code: "NOT_FOUND", message: "Appointment not found." });
+
+      const [items, balance, client, stats] = await Promise.all([
+        ctx.supabase
+          .from("appointment_services")
+          .select("service_id, name, duration_minutes, price_cents, is_addon")
+          .eq("appointment_id", a.id),
+        ctx.supabase
+          .from("appointment_balances")
+          .select("paid_cents, tip_cents, balance_due_cents")
+          .eq("appointment_id", a.id)
+          .maybeSingle(),
+        a.client_id
+          ? ctx.supabase
+              .from("clients")
+              .select("id, name, phone, email, notes, created_at")
+              .eq("id", a.client_id)
+              .maybeSingle()
+          : null,
+        a.client_id
+          ? ctx.supabase
+              .from("client_stats")
+              .select("visits, no_shows, spent_cents, last_visit_at")
+              .eq("client_id", a.client_id)
+              .maybeSingle()
+          : null,
+      ]);
+      const b = unwrap(balance);
+      const c = client ? unwrap(client) : null;
+      const st = stats ? unwrap(stats) : null;
+
+      return {
+        id: a.id,
+        staffId: a.staff_id,
+        status: a.status,
+        startsAt: a.starts_at,
+        endsAt: a.ends_at,
+        checkedInAt: a.checked_in_at,
+        completedAt: a.completed_at,
+        source: a.source,
+        bookedBy: a.booked_by,
+        createdAt: a.created_at,
+        note: a.client_note,
+        priceCents: a.total_price_cents,
+        depositCents: a.deposit_cents,
+        paidCents: b?.paid_cents ?? 0,
+        tipCents: b?.tip_cents ?? 0,
+        balanceDueCents: b?.balance_due_cents ?? a.total_price_cents,
+        services: unwrap(items)
+          .sort((x, y) => Number(x.is_addon) - Number(y.is_addon))
+          .map((i) => ({
+            serviceId: i.service_id,
+            name: i.name,
+            durationMinutes: i.duration_minutes,
+            priceCents: i.price_cents,
+            isAddon: i.is_addon,
+          })),
+        client: c
+          ? {
+              id: c.id,
+              name: c.name,
+              phone: c.phone,
+              email: c.email,
+              notes: c.notes,
+              since: c.created_at,
+              visits: st?.visits ?? 0,
+              noShows: st?.no_shows ?? 0,
+              spentCents: st?.spent_cents ?? 0,
+              lastVisitAt: st?.last_visit_at ?? null,
+            }
+          : null,
+      };
     }),
 
   /** Live bookings a barber has in a window, e.g. before adding time off over them. */

@@ -11,7 +11,15 @@ import { instantAt, wallMinutes } from "@/lib/calendar/grid";
 import { useTRPC } from "@/trpc/client";
 import type { CalendarData, Menu } from "./calendar-view";
 
-export type BookingDraft = { staffId: string; date: string; minutes: number; walkIn: boolean };
+export type BookingDraft = {
+  staffId: string;
+  date: string;
+  minutes: number;
+  walkIn: boolean;
+  /** Rebooking: start with this client and these services picked. */
+  client?: { id: string; name: string; phone: string | null };
+  serviceIds?: string[];
+};
 
 const SOURCES = [
   ["walk_in", "Walk-in"],
@@ -45,13 +53,13 @@ export function BookingPanel(props: {
   const [staffId, setStaffId] = useState(draft.staffId);
   const [date, setDate] = useState(draft.date);
   const [time, setTime] = useState(toTime(draft.minutes));
-  const [serviceIds, setServiceIds] = useState<string[]>([]);
+  const [serviceIds, setServiceIds] = useState<string[]>(draft.serviceIds ?? []);
   const [clientMode, setClientMode] = useState<"existing" | "new">(
-    draft.walkIn ? "new" : "existing",
+    draft.walkIn && !draft.client ? "new" : "existing",
   );
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<{ id: string; name: string; phone: string | null } | null>(
-    null,
+    draft.client ?? null,
   );
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -160,7 +168,10 @@ export function BookingPanel(props: {
   };
 
   return (
-    <Sheet title={draft.walkIn ? "Walk-in" : "New booking"} onClose={props.onClose}>
+    <Sheet
+      title={draft.walkIn ? "Walk-in" : draft.client ? "Book again" : "New booking"}
+      onClose={props.onClose}
+    >
       <form onSubmit={submit} className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           {calendar.viewer.isManager && calendar.barbers.length > 1 ? (

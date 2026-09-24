@@ -73,3 +73,37 @@ body {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Side sheet: slides up on phones, in from the right on wider screens. */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-left {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+.sheet[open] {
+  animation: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.sheet[open]::backdrop {
+  animation: backdrop-in 0.25s ease-out;
+}
+@media (min-width: 40rem) {
+  .sheet[open] {
+    animation-name: sheet-left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet[open],
+  .sheet[open]::backdrop {
+    animation: none;
+  }
+}

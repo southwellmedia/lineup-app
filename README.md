@@ -30,9 +30,12 @@ The web app (`apps/web`) has:
 - **Admin** at `/dashboard` (magic-link sign-in at `/login`):
   - **Today:** the day's book, totals, check-in with a live "in the chair"
     timer, mark paid (cash or other, with tip), no-show and cancel.
-  - **Calendar:** day view (a column per barber) and week view, with
-    working hours, breaks and time off. Book phone calls and walk-ins from
-    any slot, move bookings between times and barbers, cancel.
+  - **Calendar:** full-width day view (a column per barber) and week view,
+    with working hours, breaks and time off. Drag bookings to another time
+    or barber (with undo), click empty time to book phone calls and
+    walk-ins, and open any booking for a detail panel: client history and
+    notes, live chair timer, prices and payment, check in, take payment,
+    no-show, move, cancel, book again.
   - **Clients:** search, profiles with history, notes, add client, CSV export.
   - **Services:** menu, add-ons, prices, durations, deposits, per-barber
     pricing, ordering.

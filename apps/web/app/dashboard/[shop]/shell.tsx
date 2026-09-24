@@ -114,7 +114,12 @@ export function Shell(props: {
       </header>
 
       <main className="min-w-0 px-4 pb-28 pt-6 sm:px-6 md:px-10 md:pb-16 md:pt-10">
-        <div className="mx-auto max-w-4xl">{props.children}</div>
+        {/* The calendar needs the whole width; other pages read better narrow. */}
+        <div
+          className={`mx-auto ${pathname.startsWith(`${base}/calendar`) ? "max-w-[112rem]" : "max-w-4xl"}`}
+        >
+          {props.children}
+        </div>
       </main>
 
       {/* Mobile tab bar */}

@@ -31,7 +31,7 @@ export function Sheet(props: { title: string; onClose: () => void; children: Rea
         // A click on the backdrop lands on the dialog element itself.
         if (e.target === e.currentTarget) e.currentTarget.close();
       }}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-3xl bg-card p-0 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-[2px] sm:ml-auto sm:mt-0 sm:h-dvh sm:max-h-none sm:w-[28rem] sm:rounded-none sm:rounded-l-3xl"
+      className="sheet m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-3xl bg-card p-0 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-[2px] sm:ml-auto sm:mt-0 sm:h-dvh sm:max-h-none sm:w-[28rem] sm:rounded-none sm:rounded-l-3xl"
     >
       <div className="flex max-h-[92dvh] flex-col sm:h-full sm:max-h-none">
         <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
