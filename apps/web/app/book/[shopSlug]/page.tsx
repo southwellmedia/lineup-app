@@ -90,7 +90,16 @@ export default async function BookingPage({ params, searchParams }: Props) {
         <BookingFlow
           slug={shopSlug}
           source={source}
-          preselect={{ serviceId: uuid(service), barberId: uuid(barber) }}
+          preselect={{
+            serviceIds:
+              typeof service === "string"
+                ? service
+                    .split(",")
+                    .slice(0, 10)
+                    .flatMap((id) => uuid(id) ?? [])
+                : [],
+            barberId: uuid(barber),
+          }}
         />
       </HydrateClient>
     </main>

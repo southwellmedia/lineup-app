@@ -1,0 +1,55 @@
+---
+import { formatPriceRange, type SectionProps } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+
+type Props = { ctx: PageContext; props: SectionProps["services"] };
+const { ctx, props } = Astro.props;
+const { site, base } = ctx;
+const mains = site.services.filter((s) => !s.isAddon);
+const addons = site.services.filter((s) => s.isAddon);
+---
+
+<section id="menu" class="scroll-mt-20 bg-ink text-paper">
+  <div class="mx-auto max-w-6xl px-5 py-16 md:py-24">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <h2 class="font-display text-6xl font-black uppercase leading-none md:text-8xl">{props.title || "The menu"}</h2>
+      <p class="max-w-sm font-serif text-xl text-paper/70">
+        {props.intro || "Prices can vary by barber. You'll see the exact total before you book."}
+      </p>
+    </div>
+    <ul class="grid gap-x-16 gap-y-6 md:grid-cols-2">
+      {
+        mains.map((s) => (
+          <li>
+            <a href={`${base}/services/${s.slug}`} class="group block">
+              <div class="flex items-baseline gap-3">
+                <span class="font-display text-3xl font-extrabold uppercase group-hover:text-brand">{s.name}</span>
+                <span class="leader border-paper/25" />
+                <span class="font-display text-3xl font-extrabold tabular-nums">{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
+              </div>
+              <p class="mt-1 text-paper/60">
+                {s.durationMinutes} min{s.description ? ` · ${s.description}` : ""}
+              </p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    {
+      addons.length ? (
+        <div class="mt-14">
+          <h3 class="mb-5 font-serif text-3xl text-paper/80">Add something</h3>
+          <ul class="flex flex-wrap gap-3">
+            {addons.map((s) => (
+              <li class="rounded-full border border-paper/25 px-5 py-2.5">
+                <span class="font-semibold">{s.name}</span>
+                <span class="ml-2 text-paper/70 tabular-nums">+{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null
+    }
+    <a href={ctx.book()} class="mt-12 inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-brand-ink">Pick a time</a>
+  </div>
+</section>

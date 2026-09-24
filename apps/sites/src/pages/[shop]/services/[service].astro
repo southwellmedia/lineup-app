@@ -1,7 +1,10 @@
 ---
 import { formatPriceRange } from "@lineup/site-kit";
 import Site from "../../../layouts/Site.astro";
-import { pageContext, placeName } from "../../../lib/page";
+import CsDetail from "../../../templates/contact-sheet/Detail.astro";
+import CsLayout from "../../../templates/contact-sheet/Layout.astro";
+import { enabledSection } from "../../../lib/shop-view";
+import { pageCache, pageContext, placeName } from "../../../lib/page";
 
 const ctx = await pageContext(Astro.params.shop, Astro.url, Astro.locals.hostMode);
 const service = ctx?.site.services.find((s) => s.slug === Astro.params.service);
@@ -33,73 +36,99 @@ const jsonLd = {
   },
 };
 
-Astro.response.headers.set("cache-control", "public, s-maxage=60, stale-while-revalidate=600");
+Astro.response.headers.set("cache-control", pageCache(ctx));
 ---
 
-<Site ctx={ctx} title={title} description={description} path={path} jsonLd={jsonLd}>
-  <article class="mx-auto max-w-4xl px-5 pt-14">
-    <a href={`${base}/#menu`} class="text-sm font-semibold text-muted hover:text-ink">← The menu</a>
-    <h1 class="mt-4 font-display text-[clamp(3.5rem,11vw,8rem)] font-black uppercase leading-[0.85] tracking-tight">{service.name}</h1>
-    {place ? <p class="mt-3 font-serif text-3xl text-muted">at {site.shop.name}, {place}</p> : null}
+{
+  ctx.site.design.template === "contact-sheet" ? (
+    <CsLayout ctx={ctx} title={title} description={description} path={path} jsonLd={jsonLd}>
+      <CsDetail
+        ctx={ctx}
+        kicker={service.isAddon ? "Add-on" : "Service"}
+        title={service.name}
+        lede={service.description}
+        facts={[
+          { label: "Price", value: price },
+          { label: "Time", value: `${service.durationMinutes} min` },
+        ]}
+        cta={{ href: ctx.book({ service: service.id }), label: `Book a ${service.name}` }}
+        photo={ctx.media(enabledSection(site, "services")?.props.photos[service.id])}
+        more={{
+          title: barbers.length > 1 ? "Who does it" : "More services",
+          items:
+            barbers.length > 1
+              ? barbers.map((b) => ({ href: `${base}/barbers/${b.slug}`, label: b.name, note: "Book with them" }))
+              : others.map((o) => ({ href: `${base}/services/${o.slug}`, label: o.name, note: formatPriceRange(o.priceFromCents, o.priceToCents) })),
+        }}
+      />
+    </CsLayout>
+  ) : (
+    <Site ctx={ctx} title={title} description={description} path={path} jsonLd={jsonLd}>
+      <article class="mx-auto max-w-4xl px-5 pt-14">
+        <a href={`${base}/#menu`} class="text-sm font-semibold text-muted hover:text-ink">← The menu</a>
+        <h1 class="mt-4 font-display text-[clamp(3.5rem,11vw,8rem)] font-black uppercase leading-[0.85] tracking-tight">{service.name}</h1>
+        {place ? <p class="mt-3 font-serif text-3xl text-muted">at {site.shop.name}, {place}</p> : null}
 
-    <dl class="mt-10 grid grid-cols-2 gap-4 sm:max-w-md">
-      <div class="rounded-2xl border-2 border-ink bg-card p-4">
-        <dt class="text-xs font-semibold uppercase tracking-widest text-muted">Price</dt>
-        <dd class="font-display text-4xl font-black tabular-nums">{price}</dd>
-      </div>
-      <div class="rounded-2xl border-2 border-ink bg-card p-4">
-        <dt class="text-xs font-semibold uppercase tracking-widest text-muted">Time</dt>
-        <dd class="font-display text-4xl font-black tabular-nums">{service.durationMinutes} min</dd>
-      </div>
-    </dl>
-    {service.description ? <p class="mt-8 max-w-2xl text-xl">{service.description}</p> : null}
+        <dl class="mt-10 grid grid-cols-2 gap-4 sm:max-w-md">
+          <div class="rounded-2xl border-2 border-ink bg-card p-4">
+            <dt class="text-xs font-semibold uppercase tracking-widest text-muted">Price</dt>
+            <dd class="font-display text-4xl font-black tabular-nums">{price}</dd>
+          </div>
+          <div class="rounded-2xl border-2 border-ink bg-card p-4">
+            <dt class="text-xs font-semibold uppercase tracking-widest text-muted">Time</dt>
+            <dd class="font-display text-4xl font-black tabular-nums">{service.durationMinutes} min</dd>
+          </div>
+        </dl>
+        {service.description ? <p class="mt-8 max-w-2xl text-xl">{service.description}</p> : null}
 
-    <a
-      href={ctx.book({ service: service.id })}
-      class="mt-10 inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-brand-ink shadow-[4px_4px_0_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
-      >Book a {service.name.toLowerCase()}</a
-    >
+        <a
+          href={ctx.book({ service: service.id })}
+          class="mt-10 inline-block rounded-full bg-brand px-8 py-4 text-lg font-semibold text-brand-ink shadow-[4px_4px_0_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+          >Book a {service.name.toLowerCase()}</a
+        >
 
-    {
-      barbers.length ? (
-        <section class="mt-16">
-          <h2 class="font-display text-4xl font-black uppercase">Who does it</h2>
-          <ul class="mt-5 flex flex-wrap gap-3">
-            {barbers.map((b) => (
-              <li>
-                <a
-                  href={ctx.book({ service: service.id, barber: b.id })}
-                  class="inline-flex items-center gap-3 rounded-full border-2 border-ink bg-card py-2 pl-2 pr-5 font-semibold hover:bg-ink hover:text-paper"
-                >
-                  <span aria-hidden="true" class="grid size-9 place-items-center rounded-full bg-brand font-display text-lg font-black text-brand-ink">
-                    {b.name.slice(0, 1)}
-                  </span>
-                  Book with {b.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null
-    }
+        {
+          barbers.length ? (
+            <section class="mt-16">
+              <h2 class="font-display text-4xl font-black uppercase">Who does it</h2>
+              <ul class="mt-5 flex flex-wrap gap-3">
+                {barbers.map((b) => (
+                  <li>
+                    <a
+                      href={ctx.book({ service: service.id, barber: b.id })}
+                      class="inline-flex items-center gap-3 rounded-full border-2 border-ink bg-card py-2 pl-2 pr-5 font-semibold hover:bg-ink hover:text-paper"
+                    >
+                      <span aria-hidden="true" class="grid size-9 place-items-center rounded-full bg-brand font-display text-lg font-black text-brand-ink">
+                        {b.name.slice(0, 1)}
+                      </span>
+                      Book with {b.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null
+        }
 
-    {
-      others.length ? (
-        <section class="mt-16">
-          <h2 class="font-display text-4xl font-black uppercase">Also on the menu</h2>
-          <ul class="mt-5 grid gap-3 sm:grid-cols-2">
-            {others.map((s) => (
-              <li>
-                <a href={`${base}/services/${s.slug}`} class="flex items-baseline gap-3 rounded-2xl border border-line bg-card p-4 hover:border-ink">
-                  <span class="font-semibold">{s.name}</span>
-                  <span class="leader" />
-                  <span class="font-semibold tabular-nums">{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null
-    }
-  </article>
-</Site>
+        {
+          others.length ? (
+            <section class="mt-16">
+              <h2 class="font-display text-4xl font-black uppercase">Also on the menu</h2>
+              <ul class="mt-5 grid gap-3 sm:grid-cols-2">
+                {others.map((s) => (
+                  <li>
+                    <a href={`${base}/services/${s.slug}`} class="flex items-baseline gap-3 rounded-2xl border border-line bg-card p-4 hover:border-ink">
+                      <span class="font-semibold">{s.name}</span>
+                      <span class="leader" />
+                      <span class="font-semibold tabular-nums">{formatPriceRange(s.priceFromCents, s.priceToCents)}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null
+        }
+      </article>
+    </Site>
+  )
+}

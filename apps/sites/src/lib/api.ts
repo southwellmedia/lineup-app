@@ -7,12 +7,13 @@ type Entry = { site: SiteData | null; expires: number };
 const cache = new Map<string, Entry>();
 const TTL_MS = 30_000;
 
-async function fetchSite(path: string): Promise<SiteData | null> {
-  const hit = cache.get(path);
+async function fetchSite(path: string, preview = false): Promise<SiteData | null> {
+  const hit = preview ? undefined : cache.get(path);
   if (hit && hit.expires > Date.now()) return hit.site;
 
   const response = await fetch(new URL(path, LINEUP_API_URL), {
     headers: LINEUP_API_BYPASS ? { "x-vercel-protection-bypass": LINEUP_API_BYPASS } : {},
+    cache: preview ? "no-store" : "default",
   });
   if (response.status === 404) {
     cache.set(path, { site: null, expires: Date.now() + TTL_MS });
@@ -20,13 +21,25 @@ async function fetchSite(path: string): Promise<SiteData | null> {
   }
   if (!response.ok) throw new Error(`Site API ${response.status} for ${path}`);
   const site = (await response.json()) as SiteData;
-  cache.set(path, { site, expires: Date.now() + TTL_MS });
+  if (!preview) cache.set(path, { site, expires: Date.now() + TTL_MS });
   return site;
 }
 
-export function siteBySlug(slug: string): Promise<SiteData | null> {
+/**
+ * `preview` (the dashboard's live preview) skips every cache and may show
+ * another template's saved content.
+ */
+export function siteBySlug(
+  slug: string,
+  preview?: { template?: string | null },
+): Promise<SiteData | null> {
   if (!/^[a-z0-9-]{1,63}$/.test(slug)) return Promise.resolve(null);
-  return fetchSite(`/api/public/sites/${slug}`);
+  if (!preview) return fetchSite(`/api/public/sites/${slug}`);
+  const query = new URLSearchParams({ preview: "1" });
+  if (preview.template && /^[a-z-]{1,40}$/.test(preview.template)) {
+    query.set("template", preview.template);
+  }
+  return fetchSite(`/api/public/sites/${slug}?${query}`, true);
 }
 
 export function siteByDomain(domain: string): Promise<SiteData | null> {

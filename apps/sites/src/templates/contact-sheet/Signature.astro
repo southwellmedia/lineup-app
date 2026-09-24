@@ -1,0 +1,72 @@
+---
+import type { SectionProps } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+import { price, splitLast } from "./util";
+
+/** Spotlight on one service: big title, steps, price and a straight-to-booking button. */
+type Props = { ctx: PageContext; props: SectionProps["signature"] };
+const { ctx, props } = Astro.props;
+const service = ctx.site.services.find((s) => s.id === props.serviceId);
+const [titleA, titleB] = splitLast(props.title || service?.name || "The Signature");
+const photo = ctx.media(props.image);
+---
+
+{
+  service ? (
+    <section class="hour paper section wrap on-paper" id="signature">
+      <figure class="print white develop" style="--tilt:-2.2deg" data-parallax="-0.05">
+        <div class="frame" style="aspect-ratio: 508 / 600">
+          {photo ? <img src={photo} alt={props.image?.alt || service.name} loading="lazy" /> : <div class="blank" aria-hidden="true">{service.name.slice(0, 1)}</div>}
+        </div>
+        <figcaption>{props.image?.alt || service.name}</figcaption>
+        <div class="tape" style="right:70px;transform:rotate(6deg)" />
+      </figure>
+      <div class="copy">
+        <span class="mono" style="color:var(--ink-mute)">{props.kicker || `The signature — ${service.durationMinutes} minutes`}</span>
+        <h2 class="display title">{titleA}{titleB ? <><br /><span class="light">{titleB}</span></> : null}</h2>
+        {props.lede || service.description ? <p class="italic lede">{props.lede || service.description}</p> : null}
+        {
+          props.steps.length ? (
+            <ol class="timeline" style={`--steps:${props.steps.length}`}>
+              {props.steps.map((t) => (
+                <li>
+                  <span class="mono" style="color:var(--ink-mute)">{t.at}</span>
+                  <span class="display step">{t.label}</span>
+                </li>
+              ))}
+            </ol>
+          ) : null
+        }
+        <div class="price-row">
+          <span class="display price">{price(service.priceFromCents, service.priceToCents)}</span>
+          <div class="cta">
+            <a href={ctx.book({ service: service.id })} class="btn btn-ink">Reserve the {service.name} ▸</a>
+            {props.steps.length ? <span class="mono note">Timings approximate</span> : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  ) : null
+}
+
+<style>
+  .hour { display: grid; grid-template-columns: minmax(0, 540px) minmax(0, 1fr); column-gap: 72px; align-items: center; }
+  .copy { display: flex; flex-direction: column; gap: 32px; }
+  .title { font-size: clamp(88px, 11.5vw, 168px); font-weight: 900; }
+  .light { font-weight: 300; }
+  .lede { margin: 0; font-size: clamp(21px, 1.8vw, 26px); line-height: 1.35; font-weight: 300; max-width: 36ch; }
+  .timeline { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--steps), minmax(0, 1fr)); border-top: 2px solid var(--ink); }
+  .timeline li { padding-top: 12px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+  .timeline li::before { content: ''; position: absolute; top: -6px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
+  .step { font-size: clamp(22px, 2vw, 28px); font-weight: 600; }
+  .price-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid var(--soft); padding-top: 28px; flex-wrap: wrap; }
+  .price { font-size: clamp(72px, 8.5vw, 120px); font-weight: 900; }
+  .cta { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .note { color: #8a877f; font-size: 9px; }
+  @media (max-width: 900px) {
+    .hour { grid-template-columns: 1fr; row-gap: 56px; }
+    .print { width: min(88%, 460px); justify-self: center; }
+    .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
+    .cta { align-items: flex-start; }
+  }
+</style>

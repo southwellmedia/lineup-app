@@ -1,12 +1,21 @@
 import { TRPCError } from "@trpc/server";
-import type { Database } from "@lineup/db";
+import type { Database, Json } from "@lineup/db";
 import { DateTime } from "luxon";
 import { z } from "zod";
+import {
+  designInput,
+  isTemplateId,
+  mediaPaths,
+  mergeDesign,
+  resolveDesign,
+  TEMPLATE_IDS,
+  TEMPLATES,
+} from "@lineup/site-kit";
 import { fillDays, siteReport } from "@/lib/analytics/report";
 import { localDaysWindow } from "@/lib/booking/time";
 import { sitesUrl } from "@/lib/env";
 import { shopSiteUrl, siteChecklist } from "@/lib/site/overview";
-import { loadSiteData } from "@/lib/site/site-data";
+import { loadSiteData, siteMediaBaseUrl } from "@/lib/site/site-data";
 import { adminClient } from "@/lib/supabase/admin";
 import { unwrap } from "../errors";
 import { managerProcedure, router } from "../init";
@@ -34,6 +43,78 @@ export const websiteRouter = router({
       checklist: siteChecklist(site),
     };
   }),
+
+  /**
+   * The design editor's data: the active template, every template's content
+   * (resolved, so the editor never sees broken JSON), and the services and
+   * barbers sections can attach photos to.
+   */
+  design: managerProcedure.query(async ({ ctx }) => {
+    const [shop, services, staff] = await Promise.all([
+      ctx.supabase
+        .from("shops")
+        .select("id, site_template, site_content")
+        .eq("id", ctx.shopId)
+        .maybeSingle(),
+      ctx.supabase
+        .from("services")
+        .select("id, name, is_addon")
+        .eq("shop_id", ctx.shopId)
+        .eq("is_active", true)
+        .order("sort_order"),
+      ctx.supabase
+        .from("staff")
+        .select("id, display_name")
+        .eq("shop_id", ctx.shopId)
+        .eq("is_active", true)
+        .eq("is_bookable", true)
+        .order("sort_order"),
+    ]);
+    const row = unwrap(shop);
+    if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Shop not found." });
+    return {
+      active: isTemplateId(row.site_template) ? row.site_template : "classic",
+      templates: TEMPLATE_IDS.map((id) => ({
+        ...TEMPLATES[id],
+        design: resolveDesign(id, row.site_content),
+      })),
+      mediaBaseUrl: siteMediaBaseUrl(),
+      mediaFolder: `${row.id}/`,
+      services: unwrap(services).map((s) => ({ id: s.id, name: s.name, isAddon: s.is_addon })),
+      barbers: unwrap(staff).map((s) => ({ id: s.id, name: s.display_name })),
+    };
+  }),
+
+  /**
+   * Saves one template's sections and, with `activate`, makes it the live
+   * template. Photos must live in this shop's media folder.
+   */
+  saveDesign: managerProcedure
+    .input(designInput.extend({ activate: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const foreign = mediaPaths(input.sections).filter((p) => !p.startsWith(`${ctx.shopId}/`));
+      if (foreign.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Photos must be uploaded to this shop.",
+        });
+      }
+      const current = unwrap(
+        await ctx.supabase.from("shops").select("site_content").eq("id", ctx.shopId).single(),
+      );
+      unwrap(
+        await ctx.supabase
+          .from("shops")
+          .update({
+            site_content: mergeDesign(current.site_content, input) as Json,
+            ...(input.activate ? { site_template: input.template } : {}),
+          })
+          .eq("id", ctx.shopId)
+          .select("id")
+          .single(),
+      );
+      return { ok: true };
+    }),
 
   /**
    * Website traffic and what it turned into over the last `days` local days:

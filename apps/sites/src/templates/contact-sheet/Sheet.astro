@@ -1,0 +1,136 @@
+---
+import type { SectionProps } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+import { enabledSection } from "../../lib/shop-view";
+import { initials, price, splitLast } from "./util";
+
+type Props = { ctx: PageContext; props: SectionProps["services"] };
+const { ctx, props } = Astro.props;
+const { site } = ctx;
+
+// Photos: the service's own, else cycle through the film strip and hero.
+const fallbacks = [
+  ...(enabledSection(site, "gallery")?.props.images ?? []),
+  ...[enabledSection(site, "hero")?.props.image].filter((i) => i != null),
+];
+const services = [...site.services.filter((s) => !s.isAddon), ...site.services.filter((s) => s.isAddon)];
+const frames = services.map((s, i) => ({
+  ...s,
+  photo: ctx.media(props.photos[s.id] ?? fallbacks[i % Math.max(1, fallbacks.length)]),
+}));
+const firstMain = services.find((s) => !s.isAddon)?.id;
+const [titleA, titleB] = splitLast(props.title || "The Sheet");
+const code = initials(site.shop.name);
+---
+
+<section class="sheet-section wrap section" id="sheet">
+  <div class="head">
+    <h2 class="display title">{titleA} {titleB ? <span class="light">{titleB}</span> : null}</h2>
+    <p class="italic intro">
+      {props.intro || "Every service, one frame each. Circle a cut, add anything on top, and it books as one visit."}
+    </p>
+  </div>
+
+  <div class="layout" data-sheet data-book-base={ctx.book()}>
+    <div class="contact on-paper">
+      <div class="mono sheet-meta"><span>Sheet 01 — Services</span><span class="hide-sm">Circle your selects</span><span>{code}-400</span></div>
+      <div class="grid" role="group" aria-label="Services">
+        {
+          frames.map((s, i) => (
+            <button
+              type="button"
+              class="frame-btn"
+              aria-pressed={s.id === firstMain ? "true" : "false"}
+              data-service={s.id}
+              data-addon={s.isAddon ? "1" : "0"}
+              data-name={s.name}
+              data-price={Math.round(s.priceFromCents / 100)}
+              data-min={s.durationMinutes}
+            >
+              <div class="shot develop">
+                {s.photo ? <img src={s.photo} alt="" loading="lazy" /> : <div class="shot-blank" aria-hidden="true">{s.name.slice(0, 1)}</div>}
+              </div>
+              <span class="mono small"><span>{String(i + 1).padStart(2, "0")}{s.isAddon ? " · Add-on" : ""}</span><span>{s.durationMinutes} min</span></span>
+              <span class="label"><span class="display name">{s.name}</span><span class="italic price">{s.isAddon ? "+" : ""}{price(s.priceFromCents, s.priceToCents)}</span></span>
+              {s.description ? <span class="blurb">{s.description}</span> : null}
+              <svg class="circle" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M150 8 C250 4 294 64 292 150 C290 236 232 294 146 292 C56 290 8 232 8 148 C8 64 70 10 160 12 C200 13 232 22 254 36" /></svg>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <aside class="envelope on-paper" aria-live="polite">
+      <div class="env-head">
+        <span class="mono" style="color:var(--ink-mute)">Order — {site.shop.name}</span>
+        <span class="display env-title">Your selects</span>
+      </div>
+      <div class="env-body">
+        <ul class="picked" data-picked></ul>
+        <p class="italic empty" data-empty hidden>Nothing circled yet. Tap a frame.</p>
+        <p class="italic empty" data-needs-main hidden>Add-ons go with a cut. Circle one of those too.</p>
+      </div>
+      <div class="env-foot">
+        <div class="total-row"><span class="mono" data-duration style="color:var(--ink-mute)">—</span><span class="display total" data-total>$0</span></div>
+        <a href={ctx.book()} class="btn btn-ink" data-choose-time>Choose a time ▸</a>
+        <span class="mono fine">Prices can vary by barber. You'll see the exact total before you book.</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); column-gap: 48px; align-items: end; margin-bottom: 44px; }
+  .title { font-size: clamp(88px, 11vw, 160px); font-weight: 900; }
+  .light { font-weight: 300; }
+  .intro { margin: 0; font-size: 21px; line-height: 1.4; color: var(--soft); }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; align-items: start; }
+  .contact { background: var(--paper); color: var(--ink); padding: 28px 28px 30px; transform: rotate(-.4deg); box-shadow: 0 30px 70px rgba(0,0,0,.55); display: flex; flex-direction: column; gap: 20px; }
+  .sheet-meta { display: flex; justify-content: space-between; color: var(--ink-mute); }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px 18px; }
+  .frame-btn { position: relative; display: flex; flex-direction: column; gap: 9px; text-align: left; border: 0; padding: 0; background: none; color: var(--ink); cursor: pointer; }
+  .shot { aspect-ratio: 5 / 4; overflow: hidden; background: var(--ink); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; transition: filter 1.8s var(--ease), transform .6s var(--ease) !important; }
+  .shot-blank { width: 100%; height: 100%; display: grid; place-items: center; color: var(--mute); font-family: var(--f-display); font-weight: 900; font-size: 64px; text-transform: uppercase; }
+  .frame-btn:hover .shot img { filter: contrast(1.15); }
+  .small { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-mute); }
+  .label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .name { font-size: clamp(20px, 1.75vw, 25px); font-weight: 800; line-height: 1; }
+  .price { font-size: 21px; white-space: nowrap; }
+  .blurb { font-size: 14px; line-height: 1.4; color: var(--ink-mute); }
+  .circle { position: absolute; left: -12px; top: -12px; width: calc(100% + 24px); height: calc(100% + 24px); pointer-events: none; overflow: visible; }
+  .circle path { fill: none; stroke: var(--ink); stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .6s var(--ease); }
+  .frame-btn[aria-pressed='true'] .circle path { stroke-dashoffset: 0; }
+
+  .envelope { background: var(--paper); color: var(--ink); transform: rotate(1.4deg); box-shadow: 0 30px 70px rgba(0,0,0,.55); margin-top: 30px; position: sticky; top: 104px; }
+  .env-head { padding: 24px 24px 18px; border-bottom: 2px dashed var(--mute); display: flex; flex-direction: column; gap: 6px; }
+  .env-title { font-size: 46px; font-weight: 900; line-height: .9; }
+  .env-body { padding: 18px 24px; min-height: 150px; display: flex; flex-direction: column; gap: 10px; }
+  .picked { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  :global(.t-cs .picked li) { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule-light); padding-bottom: 8px; animation: slip .4s var(--ease) both; }
+  :global(.t-cs .picked .p-name) { font-family: var(--f-display); text-transform: uppercase; font-size: 24px; font-weight: 600; }
+  :global(.t-cs .picked .p-price) { font-style: italic; font-size: 20px; }
+  @keyframes slip { from { transform: translateX(-10px); opacity: 0; } }
+  .empty { margin: 0; font-size: 17px; line-height: 1.4; color: #3a3833; }
+  .env-foot { padding: 18px 24px 24px; border-top: 2px solid var(--ink); display: flex; flex-direction: column; gap: 16px; }
+  .total-row { display: flex; justify-content: space-between; align-items: flex-end; }
+  .total { font-size: 76px; font-weight: 900; line-height: .85; font-variant-numeric: tabular-nums; }
+  .total:global(.bump) { animation: bump .35s var(--ease); }
+  @keyframes bump { 50% { transform: scale(1.06) rotate(-1deg); } }
+  .env-foot .btn { width: 100%; }
+  .env-foot .btn[aria-disabled='true'] { opacity: .4; pointer-events: none; }
+  .fine { color: var(--ink-mute); font-size: 9px; }
+
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 900px) {
+    .head { grid-template-columns: 1fr; row-gap: 20px; }
+    .layout { grid-template-columns: 1fr; }
+    .envelope { position: relative; top: 0; margin-top: 0; }
+    .hide-sm { display: none; }
+  }
+  @media (max-width: 520px) {
+    .contact { padding: 18px; }
+    .grid { gap: 24px 14px; }
+    .blurb { display: none; }
+  }
+</style>

@@ -1,0 +1,291 @@
+/* Contact Sheet template. Everything is scoped under html.t-cs so it can
+   share a bundle with other templates without leaking into them. */
+
+.t-cs {
+  color-scheme: dark;
+  --ink: #0e0e0e;
+  --film: #1b1b1b;
+  --paper: #f2f0eb;
+  --paper-white: #ffffff;
+  --line: #2a2a2a;
+  --mute: #9a978f;
+  --soft: #c9c6bf;
+  --ink-mute: #55524c;
+  --rule-light: #d5d2cb;
+
+  --f-display: "Big Shoulders Display", "Oswald", Impact, "Arial Narrow", sans-serif;
+  --f-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --f-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --gutter: clamp(16px, 2.8vw, 40px);
+  --section: clamp(72px, 8vw, 112px);
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* Tilted prints and the film strip hang past the edges by design. */
+  overflow-x: clip;
+}
+.t-cs *,
+.t-cs *::before,
+.t-cs *::after {
+  box-sizing: border-box;
+}
+.t-cs body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--f-serif);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  background-image: none;
+}
+.t-cs [hidden] {
+  display: none !important;
+}
+.t-cs img {
+  display: block;
+  max-width: 100%;
+}
+.t-cs a {
+  color: inherit;
+}
+.t-cs button {
+  font: inherit;
+  color: inherit;
+}
+.t-cs p,
+.t-cs blockquote,
+.t-cs figcaption {
+  text-wrap: pretty;
+}
+.t-cs h1,
+.t-cs h2,
+.t-cs h3 {
+  text-wrap: balance;
+  margin: 0;
+  font-weight: inherit;
+}
+.t-cs ::selection {
+  background: var(--paper);
+  color: var(--ink);
+}
+.t-cs :focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 3px;
+}
+.t-cs .on-paper :focus-visible {
+  outline-color: var(--ink);
+}
+
+/* Type roles */
+.t-cs .display {
+  font-family: var(--f-display);
+  text-transform: uppercase;
+  line-height: 0.8;
+  letter-spacing: -0.01em;
+}
+.t-cs .outline {
+  color: transparent;
+  -webkit-text-stroke: 2px currentColor;
+}
+.t-cs .outline-paper {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--paper);
+}
+.t-cs .mono {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.t-cs .italic {
+  font-style: italic;
+}
+.t-cs .muted {
+  color: var(--mute);
+}
+
+/* Layout */
+.t-cs .wrap {
+  padding-inline: var(--gutter);
+}
+.t-cs .section {
+  padding-block: var(--section);
+}
+.t-cs .paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Buttons */
+.t-cs .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid currentColor;
+  background: transparent;
+  transition:
+    background 0.25s var(--ease),
+    color 0.25s var(--ease),
+    transform 0.25s var(--ease);
+}
+.t-cs .btn:hover {
+  transform: translateY(-2px);
+}
+.t-cs .btn-solid {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
+.t-cs .btn-solid:hover {
+  background: transparent;
+  color: var(--paper);
+}
+.t-cs .paper .btn-solid,
+.t-cs .btn-ink {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.t-cs .paper .btn-solid:hover,
+.t-cs .btn-ink:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+/* Print: a photo on paper */
+.t-cs .print {
+  position: relative;
+  margin: 0;
+  background: var(--paper);
+  padding: 14px 14px 52px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+  transform: rotate(var(--tilt, 0deg)) translateY(var(--drift, 0px));
+  transition: transform 0.6s var(--ease);
+  will-change: transform;
+}
+.t-cs .print.white {
+  background: var(--paper-white);
+}
+.t-cs .print .frame {
+  overflow: hidden;
+  background: var(--ink);
+}
+.t-cs .print .frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* A print with no photo yet: the shop's initial, developed in the tray. */
+.t-cs .print .blank {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 40% 35%, #2b2b2b, var(--ink) 70%);
+  color: var(--paper);
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(120px, 18vw, 240px);
+  text-transform: uppercase;
+}
+.t-cs .print figcaption {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink);
+}
+.t-cs .tape {
+  position: absolute;
+  top: -14px;
+  width: 110px;
+  height: 30px;
+  background: rgba(242, 240, 235, 0.55);
+  transform: rotate(-5deg);
+  backdrop-filter: blur(1px);
+}
+.t-cs .on-paper .tape,
+.t-cs .paper .tape {
+  background: rgba(14, 14, 14, 0.12);
+}
+
+.t-cs .sprockets {
+  height: 9px;
+  background-image: repeating-linear-gradient(90deg, var(--paper) 0 12px, transparent 12px 30px);
+  opacity: 0.85;
+}
+
+/* Darkroom "develop": photos below the fold start over-exposed, then develop. */
+.t-cs .develop img {
+  transition: filter 1.8s var(--ease);
+}
+.t-cs.js .develop.undeveloped img {
+  filter: brightness(2.6) contrast(0.35) grayscale(1);
+}
+
+/* Film grain */
+.t-cs .grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: cs-grain 1.2s steps(6) infinite;
+}
+@keyframes cs-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-3%, 2%);
+  }
+  40% {
+    transform: translate(2%, -3%);
+  }
+  60% {
+    transform: translate(-2%, -1%);
+  }
+  80% {
+    transform: translate(3%, 3%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-cs *,
+  .t-cs *::before,
+  .t-cs *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .t-cs .grain {
+    animation: none;
+  }
+}

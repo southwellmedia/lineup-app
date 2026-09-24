@@ -1,0 +1,71 @@
+---
+import type { PageContext } from "../../lib/page";
+import { enabledSection } from "../../lib/shop-view";
+import { initials } from "./util";
+
+type Props = { ctx: PageContext };
+const { ctx } = Astro.props;
+const { site, base } = ctx;
+const home = `${base}/`;
+const signature = enabledSection(site, "signature");
+const links = [
+  enabledSection(site, "services") ? { href: `${home}#sheet`, label: "Services" } : null,
+  signature?.props.serviceId ? { href: `${home}#signature`, label: "Signature" } : null,
+  enabledSection(site, "about") ? { href: `${home}#about`, label: "About" } : null,
+  enabledSection(site, "team") && site.barbers.length > 1 ? { href: `${home}#team`, label: "Team" } : null,
+  enabledSection(site, "visit") ? { href: `${home}#visit`, label: "Visit" } : null,
+].filter((l): l is { href: string; label: string } => l !== null);
+const code = initials(site.shop.name);
+const street = site.shop.address?.line;
+const area = site.shop.neighborhood ?? site.shop.address?.city ?? site.shop.name;
+---
+
+<header class="nav" data-nav>
+  <div class="nav-inner wrap">
+    <a href={home} class="mono brand">
+      {code} <span aria-hidden="true">▸</span>
+      {street ? <span class="hide-sm">{street} ▸ </span> : null}{area}
+    </a>
+    <nav class="links mono" aria-label="Primary">
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+    <div class="right">
+      <a href={ctx.book()} class="btn btn-solid reserve">Reserve <span aria-hidden="true">▸</span></a>
+      <button type="button" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu" data-menu-btn>
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <div class="menu" id="menu" data-menu hidden>
+    {links.map((l, i) => <a href={l.href} class="display" style={`--i:${i}`}>{l.label}</a>)}
+    <a href={ctx.book()} class="btn btn-solid">Reserve a chair ▸</a>
+  </div>
+</header>
+
+<style>
+  .nav { position: sticky; top: 0; z-index: 80; transition: background .35s var(--ease), border-color .35s var(--ease); border-bottom: 1px solid var(--line); background: var(--ink); }
+  .nav:global(.scrolled) { background: rgba(14,14,14,.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .nav-inner { height: 72px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
+  .brand { color: var(--mute); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .links { display: flex; gap: 32px; }
+  .links a { text-decoration: none; position: relative; }
+  .links a::after { content: ''; position: absolute; left: 0; right: 100%; bottom: -6px; height: 1px; background: currentColor; transition: right .3s var(--ease); }
+  .links a:hover::after { right: 0; }
+  .right { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+  .reserve { min-height: 42px; padding: 0 18px; }
+  .menu-btn { display: none; width: 44px; height: 44px; background: none; border: 0; cursor: pointer; position: relative; }
+  .menu-btn span { position: absolute; left: 11px; right: 11px; height: 1.5px; background: var(--paper); transition: transform .3s var(--ease), top .3s var(--ease); }
+  .menu-btn span:first-child { top: 18px; } .menu-btn span:last-child { top: 25px; }
+  .menu-btn[aria-expanded='true'] span:first-child { top: 21px; transform: rotate(45deg); }
+  .menu-btn[aria-expanded='true'] span:last-child { top: 21px; transform: rotate(-45deg); }
+  .menu { position: fixed; inset: 72px 0 0; background: var(--ink); padding: 32px var(--gutter); display: flex; flex-direction: column; gap: 18px; }
+  .menu a.display { font-size: 64px; text-decoration: none; animation: rise .5s var(--ease) both; animation-delay: calc(var(--i) * 60ms); }
+  .menu[hidden] { display: none; }
+  .menu .btn { margin-top: 16px; align-self: flex-start; }
+  @keyframes rise { from { transform: translateY(24px); opacity: 0; } }
+  @media (max-width: 900px) {
+    .nav-inner { grid-template-columns: 1fr auto; }
+    .links, .hide-sm, .reserve { display: none; }
+    .menu-btn { display: block; }
+  }
+</style>

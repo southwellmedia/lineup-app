@@ -12,7 +12,7 @@ Architecture follows the MAD Stack shape, but this is its own product.
 | ---------------------- | ------------------------------------------------------------ |
 | Web app, booking pages | Next.js 16 App Router, tRPC v11, Tailwind v4 (`apps/web`)    |
 | Barber app             | Expo (not started)                                           |
-| Shop websites          | Astro 7 SSR, multi-tenant (`apps/sites`)                     |
+| Shop websites          | Astro 7 SSR, multi-tenant, templates (`apps/sites`)          |
 | Database and auth      | Supabase Postgres + Auth, Supabase client SDK, no ORM        |
 | Validation             | Zod 4 using the Zod 3 compat API (`import { z } from "zod"`) |
 | Payments               | Stripe Connect (not started; cash works today)               |
@@ -148,6 +148,33 @@ supabase/seed.sql        # local demo shop
   database, because they're written into the site's HTML.
 - Book links go through `bookingLink()` so attribution (`src=website`) is
   always set. Pages cache for 60s at the edge.
+
+## Website templates and the design editor
+
+- A shop's site is `shops.site_template` plus `shops.site_content`: per
+  template, an ordered list of sections `{ type, enabled, props }`. The
+  model, schemas, defaults and template registry live in
+  `packages/site-kit/src/design.ts`. Always read stored content through
+  `resolveDesign()` (fills defaults, drops anything invalid); save through
+  `designInput` + `mergeDesign()` (keeps other templates' content).
+- Sections hold presentation and marketing copy only. Services, prices,
+  hours, team and address always come from Lineup data.
+- Templates live in `apps/sites/src/templates/<id>/` (`classic`,
+  `contact-sheet`). A template's global CSS must be scoped (Contact Sheet
+  uses `html.t-cs`) because Astro bundles every imported template's CSS into
+  the page. Shared head/body bits: `components/Tracking.astro`,
+  `components/Beacon.astro`.
+- Photos go in the public `site-media` Storage bucket under `<shop id>/`.
+  Storage RLS lets only that shop's owners/managers write; the editor
+  uploads from the browser after resizing to 2000px and re-encoding (which
+  strips EXIF/GPS). `saveDesign` rejects media paths outside the shop's
+  folder.
+- `?preview=1` (optionally `&template=`) on a site page skips every cache
+  and renders a saved but not-yet-live template; the dashboard's Design page
+  (`/dashboard/<shop>/website/design`) uses it for its live preview.
+- Adding a template: add its id to `TEMPLATE_IDS`/`TEMPLATES`, the
+  `site_template` CHECK constraint (new migration), and a
+  `templates/<id>/Home.astro` wired into the `[shop]` pages.
 
 ## Tenancy and security
 

@@ -1,4 +1,4 @@
-import { bookingLink, type SiteData } from "@lineup/site-kit";
+import { bookingLink, mediaUrl, type MediaRef, type SiteData } from "@lineup/site-kit";
 import { siteBySlug } from "./api";
 
 export type PageContext = {
@@ -8,7 +8,11 @@ export type PageContext = {
   /** Absolute canonical URL for a site path like "/barbers/marcus". */
   canonical: (path: string) => string;
   /** Booking link with optional preselection; always attributed to the website. */
-  book: (params?: { service?: string; barber?: string }) => string;
+  book: (params?: { service?: string | string[]; barber?: string }) => string;
+  /** Dashboard preview: no caching, and links keep the preview query. */
+  preview: boolean;
+  /** Absolute URL of a site photo, or null. */
+  media: (ref: MediaRef | null | undefined) => string | null;
 };
 
 /**
@@ -21,7 +25,11 @@ export async function pageContext(
   hostMode: boolean,
 ): Promise<PageContext | null> {
   if (!slug) return null;
-  const site = await siteBySlug(slug);
+  const preview = url.searchParams.get("preview") === "1";
+  const site = await siteBySlug(
+    slug,
+    preview ? { template: url.searchParams.get("template") } : undefined,
+  );
   if (!site) return null;
 
   const base = hostMode ? "" : `/${site.shop.slug}`;
@@ -34,6 +42,8 @@ export async function pageContext(
     canonical: (path) =>
       `${origin}${canonicalBase}${path === "/" ? (canonicalBase ? "" : "/") : path}`,
     book: (params = {}) => bookingLink(site.bookingUrl, params),
+    preview,
+    media: (ref) => mediaUrl(site.mediaBaseUrl, ref),
   };
 }
 
@@ -43,4 +53,9 @@ export function placeName(site: SiteData): string | null {
   if (site.shop.neighborhood && city) return `${site.shop.neighborhood}, ${city}`;
   if (city) return site.shop.address?.region ? `${city}, ${site.shop.address.region}` : city;
   return site.shop.neighborhood;
+}
+
+/** Edge caching for shop pages; previews must always be fresh. */
+export function pageCache(ctx: PageContext): string {
+  return ctx.preview ? "no-store" : "public, s-maxage=60, stale-while-revalidate=600";
 }

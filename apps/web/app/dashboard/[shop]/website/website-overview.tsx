@@ -32,14 +32,22 @@ export function WebsiteOverview() {
         description="A fast, search-friendly site built from your menu, team and hours. It updates on its own when you change them here."
         action={
           data.url ? (
-            <a
-              href={data.url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-5 py-2.5 font-semibold text-paper hover:border-brand hover:bg-brand hover:text-brand-ink"
-            >
-              Open site <span aria-hidden>↗</span>
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`${base}/website/design` as Route}
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-5 py-2.5 font-semibold hover:border-ink"
+              >
+                Edit design
+              </Link>
+              <a
+                href={data.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-5 py-2.5 font-semibold text-paper hover:border-brand hover:bg-brand hover:text-brand-ink"
+              >
+                Open site <span aria-hidden>↗</span>
+              </a>
+            </div>
           ) : null
         }
       />

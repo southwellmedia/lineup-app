@@ -1,0 +1,75 @@
+---
+import { jsonLdScript } from "@lineup/site-kit";
+import Beacon from "../../components/Beacon.astro";
+import Tracking from "../../components/Tracking.astro";
+import type { PageContext } from "../../lib/page";
+import { enabledSection } from "../../lib/shop-view";
+import Footer from "./Footer.astro";
+import MobileBar from "./MobileBar.astro";
+import Nav from "./Nav.astro";
+import "./styles.css";
+
+type Props = { ctx: PageContext; title: string; description: string; path: string; jsonLd?: unknown };
+const { ctx, title, description, path, jsonLd } = Astro.props;
+const { site } = ctx;
+const hero = enabledSection(site, "hero");
+const ogImage = ctx.media(hero?.props.image);
+---
+
+<!doctype html>
+<html lang="en" class="t-cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {ctx.preview ? <meta name="robots" content="noindex" /> : null}
+    <link rel="canonical" href={ctx.canonical(path)} />
+    <meta name="theme-color" content="#0e0e0e" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.shop.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={ctx.canonical(path)} />
+    {ogImage ? <meta property="og:image" content={ogImage} /> : null}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@300;600;800;900&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&display=swap"
+    />
+    {jsonLd ? <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} /> : null}
+    <script is:inline>document.documentElement.classList.add("js");</script>
+    <Tracking site={site} />
+  </head>
+  <body>
+    <a class="skip mono" href="#main">Skip to content</a>
+    <div class="grain" aria-hidden="true"></div>
+    <Nav ctx={ctx} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer ctx={ctx} />
+    <MobileBar ctx={ctx} />
+    <script>
+      import "./effects";
+    </script>
+    <Beacon base={ctx.base} />
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    z-index: 200;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 10px 14px;
+    text-decoration: none;
+  }
+  .skip:focus {
+    left: 8px;
+  }
+</style>

@@ -1,0 +1,58 @@
+---
+import type { SectionProps } from "@lineup/site-kit";
+
+type Props = { props: SectionProps["reviews"] };
+const { props } = Astro.props;
+const tilts = [-1.6, 1.4, 0.8, -1, 1.2, -0.6];
+const sources = [...new Set(props.items.map((r) => r.source).filter(Boolean))];
+---
+
+{
+  props.items.length || props.rating ? (
+    <section class={`reviews wrap section ${props.rating ? "" : "no-score"}`} aria-labelledby="reviews-title">
+      {props.rating ? (
+        <div class="score">
+          <span class="mono muted">Notes from the chair</span>
+          <span class="display big" id="reviews-title">{props.rating}</span>
+          <span class="mono stars" aria-label="Rating out of five">★★★★★</span>
+          {props.count ? (
+            <span class="italic sub">
+              Across {props.count.toLocaleString()} reviews{sources.length ? ` on ${sources.join(" and ")}` : ""}.
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        <h2 class="mono muted" id="reviews-title">Notes from the chair</h2>
+      )}
+      {props.items.length ? (
+        <div class="slips">
+          {props.items.map((r, i) => (
+            <figure class={`slip ${i % 3 === 0 ? "cream" : "white"}`} style={`--tilt:${tilts[i % tilts.length]}deg`}>
+              <blockquote>“{r.quote}”</blockquote>
+              <figcaption class="mono">{[r.name, r.source].filter(Boolean).join(" — ")}</figcaption>
+              {i % 3 === 0 && <div class="tape" />}
+            </figure>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  ) : null
+}
+
+<style>
+  .reviews { border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); column-gap: 56px; align-items: center; }
+  .reviews.no-score { grid-template-columns: 1fr; row-gap: 32px; }
+  .score { display: flex; flex-direction: column; gap: 14px; }
+  .big { font-size: clamp(180px, 18vw, 260px); font-weight: 900; line-height: .78; }
+  .stars { font-size: 14px; letter-spacing: .3em; }
+  .sub { font-size: 22px; color: var(--soft); }
+  .slips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 28px; }
+  .slip { position: relative; margin: 0; color: var(--ink); padding: 28px; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; box-shadow: 0 20px 50px rgba(0,0,0,.6); transform: rotate(var(--tilt)); transition: transform .45s var(--ease), box-shadow .45s var(--ease); }
+  .slip:hover { transform: rotate(0deg) translateY(-6px); box-shadow: 0 34px 60px rgba(0,0,0,.7); }
+  .cream { background: var(--paper); } .white { background: var(--paper-white); }
+  .slip blockquote { margin: 0; font-size: 23px; line-height: 1.35; }
+  .slip figcaption { color: var(--ink-mute); }
+  .slip .tape { left: 40%; background: rgba(14,14,14,.1); }
+  @media (max-width: 900px) { .reviews { grid-template-columns: 1fr; row-gap: 48px; } }
+  @media (max-width: 620px) { .slips { grid-template-columns: 1fr; } }
+</style>

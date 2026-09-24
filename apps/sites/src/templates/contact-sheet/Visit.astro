@@ -1,0 +1,91 @@
+---
+import { formatPhone, hoursTable, openStatus, type SectionProps } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+import { mapsUrl } from "../../lib/shop-view";
+import { groupHours } from "./util";
+
+type Props = { ctx: PageContext; props: SectionProps["visit"] };
+const { ctx, props } = Astro.props;
+const { site } = ctx;
+const address = site.shop.address;
+const words = address?.line.split(/\s+/) ?? [];
+const lineA = words.slice(0, Math.min(2, Math.max(1, words.length - 1))).join(" ");
+const rest = words.slice(lineA.split(" ").length);
+const lastWord = rest.length > 1 ? rest[rest.length - 1] : null;
+const middle = lastWord ? rest.slice(0, -1).join(" ") : rest.join(" ");
+const area = [site.shop.neighborhood, [address?.city, address?.region].filter(Boolean).join(", "), address?.postalCode]
+  .filter(Boolean)
+  .join(" · ");
+const maps = mapsUrl(site);
+const hours = groupHours(hoursTable(site.hours));
+const status = openStatus(site.hours, site.shop.timezone, new Date());
+---
+
+<section class="visit paper wrap section on-paper" id="visit">
+  <div class="where">
+    <span class="mono" style="color:var(--ink-mute)">Visit</span>
+    {
+      address ? (
+        <a href={maps ?? "#"} class="display addr" target="_blank" rel="noopener">
+          {lineA}
+          <br />
+          {middle} {lastWord ? <span class="light">{lastWord}</span> : null}
+        </a>
+      ) : (
+        <span class="display addr">Find us</span>
+      )
+    }
+    {area ? <span class="italic area">{area}</span> : null}
+    <div class="actions">
+      {maps ? <a href={maps} class="btn btn-ink" target="_blank" rel="noopener">Directions ▸</a> : null}
+      {site.shop.phone ? <a href={`tel:${site.shop.phone}`} class="btn">{formatPhone(site.shop.phone)}</a> : null}
+      {site.shop.phone ? <a href={`sms:${site.shop.phone}`} class="btn">Text the shop</a> : null}
+    </div>
+  </div>
+  <div class="side">
+    <div class="hours">
+      <span class="display h-title">Hours</span>
+      {hours.map((h) => <div class={`mono row ${h.open ? "" : "closed"}`}><span>{h.days}</span><span>{h.time}</span></div>)}
+      <div class="mono row now"><span class={`dot ${status.open ? "" : "off"}`}></span><span>{status.text}</span></div>
+    </div>
+    {
+      props.faqs.length ? (
+        <div class="faq">
+          {props.faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      ) : null
+    }
+  </div>
+</section>
+
+<style>
+  .visit { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); column-gap: 72px; align-items: start; }
+  .where { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+  .addr { font-size: clamp(72px, 10vw, 150px); font-weight: 900; text-decoration: none; overflow-wrap: anywhere; }
+  .addr:hover .light { -webkit-text-stroke: 2px var(--ink); color: transparent; }
+  .light { font-weight: 300; }
+  .area { font-size: 24px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .side { display: flex; flex-direction: column; gap: 28px; }
+  .hours { background: var(--ink); color: var(--paper); padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .h-title { font-size: 42px; font-weight: 800; line-height: 1; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid #3a3a3a; padding-top: 12px; }
+  .row.closed { color: var(--mute); }
+  .now { justify-content: flex-start; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--paper); animation: pulse 2s infinite; }
+  .dot.off { opacity: .35; animation: none; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  .faq details { border-top: 1px solid var(--ink); padding: 16px 0; }
+  .faq details:last-child { border-bottom: 1px solid var(--ink); }
+  .faq summary { font-size: 20px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: '+'; font-family: var(--f-mono); transition: transform .3s var(--ease); }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq p { margin: 10px 0 0; font-size: 16px; line-height: 1.55; color: #3a3833; }
+  @media (max-width: 900px) { .visit { grid-template-columns: 1fr; row-gap: 48px; } }
+</style>

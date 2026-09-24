@@ -1,0 +1,32 @@
+---
+import { localBusinessJsonLd } from "@lineup/site-kit";
+import Site from "../../layouts/Site.astro";
+import type { PageContext } from "../../lib/page";
+import About from "./About.astro";
+import Hero from "./Hero.astro";
+import Menu from "./Menu.astro";
+import Team from "./Team.astro";
+import Visit from "./Visit.astro";
+
+type Props = { ctx: PageContext; title: string; description: string };
+const { ctx, title, description } = Astro.props;
+const sections = ctx.site.design.sections.filter((s) => s.enabled);
+---
+
+<Site ctx={ctx} title={title} description={description} path="/" jsonLd={localBusinessJsonLd(ctx.site, ctx.canonical("/"))}>
+  {
+    sections.map((s) =>
+      s.type === "hero" ? (
+        <Hero ctx={ctx} props={s.props} />
+      ) : s.type === "services" ? (
+        <Menu ctx={ctx} props={s.props} />
+      ) : s.type === "team" ? (
+        <Team ctx={ctx} props={s.props} />
+      ) : s.type === "about" ? (
+        <About ctx={ctx} props={s.props} />
+      ) : s.type === "visit" ? (
+        <Visit ctx={ctx} props={s.props} />
+      ) : null,
+    )
+  }
+</Site>

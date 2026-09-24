@@ -1,5 +1,7 @@
 ---
 import { brandStyle, formatPhone, jsonLdScript } from "@lineup/site-kit";
+import Beacon from "../components/Beacon.astro";
+import Tracking from "../components/Tracking.astro";
 import type { PageContext } from "../lib/page";
 import "../styles/global.css";
 
@@ -13,7 +15,6 @@ interface Props {
 
 const { ctx, title, description, path, jsonLd } = Astro.props;
 const { site, base } = ctx;
-const { ga4MeasurementId, metaPixelId, googleSiteVerification } = site.tracking;
 const style = Object.entries(brandStyle(site.shop.brandColor))
   .map(([k, v]) => `${k}:${v}`)
   .join(";");
@@ -32,6 +33,7 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {ctx.preview ? <meta name="robots" content="noindex" /> : null}
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.shop.name} />
@@ -46,54 +48,7 @@ const nav = [
       href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,600..900&family=Instrument+Sans:wght@400..700&family=Instrument+Serif:ital@1&display=swap"
     />
     {jsonLd ? <script type="application/ld+json" set:html={jsonLdScript(jsonLd)} /> : null}
-    {googleSiteVerification ? <meta name="google-site-verification" content={googleSiteVerification} /> : null}
-    {/* The owner's own Google Analytics and Meta Pixel (Settings → Connections).
-        Ids are validated server-side and passed as data, never as code. Not
-        loaded inside frames, so the dashboard preview doesn't count. */}
-    {
-      ga4MeasurementId ? (
-        <script is:inline data-id={ga4MeasurementId}>
-          (() => {
-            if (window.top !== window.self) return;
-            const id = document.currentScript.dataset.id;
-            const tag = document.createElement("script");
-            tag.async = true;
-            tag.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
-            document.head.appendChild(tag);
-            window.dataLayer = window.dataLayer || [];
-            window.gtag = function () {
-              window.dataLayer.push(arguments);
-            };
-            window.gtag("js", new Date());
-            window.gtag("config", id);
-          })();
-        </script>
-      ) : null
-    }
-    {
-      metaPixelId ? (
-        <script is:inline data-id={metaPixelId}>
-          (() => {
-            if (window.top !== window.self || window.fbq) return;
-            const id = document.currentScript.dataset.id;
-            const fbq = (window.fbq = function () {
-              fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments);
-            });
-            window._fbq = fbq;
-            fbq.push = fbq;
-            fbq.loaded = true;
-            fbq.version = "2.0";
-            fbq.queue = [];
-            const tag = document.createElement("script");
-            tag.async = true;
-            tag.src = "https://connect.facebook.net/en_US/fbevents.js";
-            document.head.appendChild(tag);
-            fbq("init", id);
-            fbq("track", "PageView");
-          })();
-        </script>
-      ) : null
-    }
+    <Tracking site={site} />
   </head>
   <body class="min-h-dvh pb-20 font-sans antialiased md:pb-0">
     <a
@@ -166,40 +121,6 @@ const nav = [
         Book an appointment
       </a>
     </div>
-    {/* Cookieless analytics: a page view, plus a click on any Book link. Skipped
-        inside frames (the dashboard preview) and for automated browsers. */}
-    <script is:inline data-endpoint={`${base}/api/event`}>
-      (() => {
-        if (window.top !== window.self || navigator.webdriver) return;
-        const endpoint = document.currentScript.dataset.endpoint;
-        const utm = new URLSearchParams(location.search).get("utm_source") || undefined;
-        const send = (kind) => {
-          const body = JSON.stringify({
-            kind,
-            path: location.pathname,
-            referrer: document.referrer || undefined,
-            utmSource: utm,
-            host: location.hostname,
-          });
-          const blob = new Blob([body], { type: "application/json" });
-          if (!(navigator.sendBeacon && navigator.sendBeacon(endpoint, blob))) {
-            fetch(endpoint, { method: "POST", body, keepalive: true, headers: { "content-type": "application/json" } });
-          }
-        };
-        send("pageview");
-        document.addEventListener(
-          "click",
-          (e) => {
-            if (e.target instanceof Element && e.target.closest("a[href*='/book/']")) {
-              send("book_click");
-              // Also tell the owner's own tools, if they connected any.
-              if (window.gtag) window.gtag("event", "book_click");
-              if (window.fbq) window.fbq("trackCustom", "BookClick");
-            }
-          },
-          { capture: true },
-        );
-      })();
-    </script>
+    <Beacon base={base} />
   </body>
 </html>

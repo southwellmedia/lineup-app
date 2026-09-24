@@ -1,13 +1,21 @@
 import "server-only";
 import type { Database } from "@lineup/db";
-import { shopHours, slugify, type SiteData } from "@lineup/site-kit";
+import {
+  isTemplateId,
+  resolveDesign,
+  shopHours,
+  slugify,
+  type SiteData,
+  type TemplateId,
+} from "@lineup/site-kit";
+import { publicEnv } from "@/lib/env";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { unwrap } from "@/trpc/errors";
 
 type Db = SupabaseClient<Database>;
 
 const SHOP_COLUMNS =
-  "id, name, slug, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, timezone, brand_color, custom_domain, ga4_measurement_id, meta_pixel_id, google_site_verification" as const;
+  "id, name, slug, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, timezone, brand_color, custom_domain, ga4_measurement_id, meta_pixel_id, google_site_verification, site_template, site_content" as const;
 
 /** Unique slugs for a list of names, in order: "Fade", "Fade" → "fade", "fade-2". */
 function slugsFor(names: string[]): string[] {
@@ -30,6 +38,8 @@ export async function loadSiteData(
   db: Db,
   lookup: { slug: string } | { domain: string },
   appOrigin: string,
+  /** Preview only: render another template's saved content. */
+  options: { template?: TemplateId } = {},
 ): Promise<SiteData | null> {
   const query = db.from("shops").select(SHOP_COLUMNS);
   const shop = unwrap(
@@ -124,10 +134,20 @@ export async function loadSiteData(
         .filter((h) => bookable.has(h.staff_id))
         .map((h) => ({ weekday: h.weekday, start: h.start_time, end: h.end_time })),
     ),
+    design: resolveDesign(
+      options.template ?? (isTemplateId(shop.site_template) ? shop.site_template : "classic"),
+      shop.site_content,
+    ),
+    mediaBaseUrl: siteMediaBaseUrl(),
     tracking: {
       ga4MeasurementId: shop.ga4_measurement_id,
       metaPixelId: shop.meta_pixel_id,
       googleSiteVerification: shop.google_site_verification,
     },
   };
+}
+
+/** Public URL prefix of the site-media bucket. */
+export function siteMediaBaseUrl(): string {
+  return `${publicEnv().NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-media/`;
 }

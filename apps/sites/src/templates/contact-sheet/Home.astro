@@ -1,0 +1,47 @@
+---
+import { localBusinessJsonLd } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+import About from "./About.astro";
+import Hero from "./Hero.astro";
+import Layout from "./Layout.astro";
+import Reviews from "./Reviews.astro";
+import Sheet from "./Sheet.astro";
+import Signature from "./Signature.astro";
+import Strip from "./Strip.astro";
+import Team from "./Team.astro";
+import Visit from "./Visit.astro";
+
+type Props = { ctx: PageContext; title: string; description: string };
+const { ctx, title, description } = Astro.props;
+const sections = ctx.site.design.sections.filter((s) => s.enabled);
+// The film strip sits inside the hero when it comes right after it, as designed.
+const heroIndex = sections.findIndex((s) => s.type === "hero");
+const next = sections[heroIndex + 1];
+const stripInHero = heroIndex >= 0 && next?.type === "gallery" ? next : null;
+---
+
+<Layout ctx={ctx} title={title} description={description} path="/" jsonLd={localBusinessJsonLd(ctx.site, ctx.canonical("/"))}>
+  {
+    sections.map((s) =>
+      s.type === "hero" ? (
+        <Hero ctx={ctx} props={s.props}>
+          {stripInHero ? <Strip ctx={ctx} props={stripInHero.props} /> : null}
+        </Hero>
+      ) : s.type === "gallery" ? (
+        s === stripInHero ? null : <Strip ctx={ctx} props={s.props} />
+      ) : s.type === "services" ? (
+        <Sheet ctx={ctx} props={s.props} />
+      ) : s.type === "signature" ? (
+        <Signature ctx={ctx} props={s.props} />
+      ) : s.type === "about" ? (
+        <About ctx={ctx} props={s.props} />
+      ) : s.type === "team" ? (
+        <Team ctx={ctx} props={s.props} />
+      ) : s.type === "reviews" ? (
+        <Reviews props={s.props} />
+      ) : s.type === "visit" ? (
+        <Visit ctx={ctx} props={s.props} />
+      ) : null,
+    )
+  }
+</Layout>

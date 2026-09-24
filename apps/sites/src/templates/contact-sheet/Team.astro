@@ -1,0 +1,51 @@
+---
+import type { SectionProps } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+import { splitLast } from "./util";
+
+/** The barbers as a row of prints. */
+type Props = { ctx: PageContext; props: SectionProps["team"] };
+const { ctx, props } = Astro.props;
+const { site, base } = ctx;
+const tilts = [-1.8, 1.4, -0.8, 2, -1.2, 0.9];
+const [titleA, titleB] = splitLast(props.title || "The Chairs");
+---
+
+{
+  site.barbers.length ? (
+    <section class="team wrap section" id="team">
+      <h2 class="display title">{titleA} {titleB ? <span class="light">{titleB}</span> : null}</h2>
+      <ul class="prints">
+        {site.barbers.map((b, i) => {
+          const photo = ctx.media(props.photos[b.id]);
+          return (
+            <li class="barber">
+              <figure class="print develop" style={`--tilt:${tilts[i % tilts.length]}deg`}>
+                <a href={`${base}/barbers/${b.slug}`} class="frame" style="aspect-ratio: 4 / 5; display:block">
+                  {photo ? <img src={photo} alt={b.name} loading="lazy" /> : <div class="blank" aria-hidden="true">{b.name.slice(0, 1)}</div>}
+                </a>
+                <figcaption>
+                  <span>{b.name}</span>
+                  <span class="mono" style="font-style:normal;font-size:10px">Chair {String(i + 1).padStart(2, "0")}</span>
+                </figcaption>
+              </figure>
+              {b.bio ? <p class="italic bio">{b.bio}</p> : null}
+              <a href={ctx.book({ barber: b.id })} class="btn">Book with {b.name} ▸</a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  ) : null
+}
+
+<style>
+  .team { border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 56px; }
+  .title { font-size: clamp(88px, 11vw, 160px); font-weight: 900; }
+  .light { font-weight: 300; }
+  .prints { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 56px 40px; }
+  .barber { display: flex; flex-direction: column; gap: 22px; align-items: flex-start; }
+  .barber .print { width: 100%; }
+  .barber .print:hover { transform: rotate(0deg) translateY(-6px); }
+  .bio { margin: 0; font-size: 19px; line-height: 1.45; color: var(--soft); }
+</style>

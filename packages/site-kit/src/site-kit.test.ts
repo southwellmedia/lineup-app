@@ -1,3 +1,4 @@
+import { resolveDesign } from "./design";
 import { describe, expect, it } from "vitest";
 import {
   bookingLink,
@@ -53,6 +54,8 @@ const site: SiteData = {
   ],
   hours: shopHours([{ weekday: 2, start: "10:00", end: "19:00" }]),
   tracking: { ga4MeasurementId: null, metaPixelId: null, googleSiteVerification: null },
+  design: resolveDesign("classic", null),
+  mediaBaseUrl: "https://media.test/",
 };
 
 describe("prices", () => {
@@ -71,6 +74,9 @@ describe("bookingLink", () => {
     );
     expect(bookingLink(site.bookingUrl, { service: "fade", barber: "m" })).toBe(
       "https://app.example.com/book/southside-cuts?src=website&service=fade&barber=m",
+    );
+    expect(bookingLink(site.bookingUrl, { service: ["fade", "beard"] })).toBe(
+      "https://app.example.com/book/southside-cuts?src=website&service=fade%2Cbeard",
     );
   });
 });

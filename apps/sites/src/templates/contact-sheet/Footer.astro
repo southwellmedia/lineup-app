@@ -1,0 +1,47 @@
+---
+import type { PageContext } from "../../lib/page";
+import { initials } from "./util";
+
+type Props = { ctx: PageContext };
+const { ctx } = Astro.props;
+const { site } = ctx;
+const code = initials(site.shop.name);
+---
+
+<footer class="footer">
+  <div class="leader">
+    <div class="sprockets"></div>
+    <div class="mono marks" aria-hidden="true"><span>▸ 36</span><span>36A</span><span>End of roll</span><span>{code}-400</span><span>▸ 37</span></div>
+  </div>
+  <div class="wrap body">
+    <a href={ctx.book()} class="display cta">
+      <span>Reserve <span class="outline-paper light ac">a chair</span></span><span class="arrow" aria-hidden="true">▸</span>
+    </a>
+    <div class="mono meta">
+      <span>© {new Date().getFullYear()} {site.shop.name}</span>
+      {site.shop.instagram ? <a href={`https://instagram.com/${site.shop.instagram}`} target="_blank" rel="noopener">IG @{site.shop.instagram}</a> : null}
+      {site.shop.email ? <a href={`mailto:${site.shop.email}`}>{site.shop.email}</a> : null}
+      <span>Booking by Lineup</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .leader { background: var(--film); padding: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+  .marks { display: flex; justify-content: space-between; padding: 0 30px; font-size: 9px; color: var(--mute); }
+  .body { padding-block: 64px 32px; display: flex; flex-direction: column; gap: 48px; }
+  .cta { display: flex; justify-content: space-between; align-items: baseline; width: 100%; text-decoration: none; font-size: clamp(72px, 13.9vw, 200px); font-weight: 900; color: var(--paper); white-space: nowrap; }
+  .light { font-weight: 300; }
+  .arrow { font-weight: 300; transition: transform .4s var(--ease); }
+  .cta:hover .arrow { transform: translateX(16px); }
+  .cta:hover .outline-paper { color: var(--paper); }
+  .outline-paper { transition: color .4s var(--ease); }
+  .meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: var(--mute); border-top: 1px solid var(--line); padding-top: 18px; }
+  .meta a { text-decoration: none; }
+  @media (max-width: 700px) {
+    .cta { white-space: normal; flex-direction: column; align-items: flex-start; gap: 12px; font-size: 26vw; }
+    .ac { display: block; }
+    .meta { flex-direction: column; }
+    .body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+import type { PageContext } from "../../lib/page";
+
+type Props = { ctx: PageContext };
+const { ctx } = Astro.props;
+---
+
+<div class="mbar" data-mbar>
+  {ctx.site.shop.phone ? <a href={`tel:${ctx.site.shop.phone}`} class="btn">Call</a> : null}
+  <a href={ctx.book()} class="btn btn-solid grow">Reserve a chair ▸</a>
+</div>
+
+<style>
+  .mbar { display: none; }
+  @media (max-width: 700px) {
+    .mbar {
+      display: flex; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+      padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+      background: rgba(14,14,14,.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      transform: translateY(0); transition: transform .4s var(--ease);
+    }
+    .mbar:global(.hidden-bar) { transform: translateY(110%); }
+    .btn { min-height: 54px; }
+    .grow { flex: 1; }
+  }
+</style>

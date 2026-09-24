@@ -1,4 +1,4 @@
-import type { SiteData } from "@lineup/site-kit";
+import { resolveDesign, type SiteData } from "@lineup/site-kit";
 import { describe, expect, it } from "vitest";
 import { shopSiteUrl, siteChecklist } from "./overview";
 
@@ -49,6 +49,8 @@ const site: SiteData = {
   ],
   hours: [],
   tracking: { ga4MeasurementId: null, metaPixelId: null, googleSiteVerification: null },
+  design: resolveDesign("classic", null),
+  mediaBaseUrl: "https://media.test/",
 };
 
 describe("shopSiteUrl", () => {

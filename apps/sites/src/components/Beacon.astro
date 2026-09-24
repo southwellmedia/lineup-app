@@ -1,0 +1,41 @@
+---
+/** Lineup's cookieless analytics for every template. Book links are any link to /book/. */
+type Props = { base: string };
+const { base } = Astro.props;
+---
+
+{/* Cookieless analytics: a page view, plus a click on any Book link. Skipped
+    inside frames (the dashboard preview) and for automated browsers. */}
+<script is:inline data-endpoint={`${base}/api/event`}>
+  (() => {
+    if (window.top !== window.self || navigator.webdriver) return;
+    const endpoint = document.currentScript.dataset.endpoint;
+    const utm = new URLSearchParams(location.search).get("utm_source") || undefined;
+    const send = (kind) => {
+      const body = JSON.stringify({
+        kind,
+        path: location.pathname,
+        referrer: document.referrer || undefined,
+        utmSource: utm,
+        host: location.hostname,
+      });
+      const blob = new Blob([body], { type: "application/json" });
+      if (!(navigator.sendBeacon && navigator.sendBeacon(endpoint, blob))) {
+        fetch(endpoint, { method: "POST", body, keepalive: true, headers: { "content-type": "application/json" } });
+      }
+    };
+    send("pageview");
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (e.target instanceof Element && e.target.closest("a[href*='/book/']")) {
+          send("book_click");
+          // Also tell the owner's own tools, if they connected any.
+          if (window.gtag) window.gtag("event", "book_click");
+          if (window.fbq) window.fbq("trackCustom", "BookClick");
+        }
+      },
+      { capture: true },
+    );
+  })();
+</script>

@@ -33,11 +33,13 @@ export function slugify(input: string): string {
 /** Appends booking deep-link parameters to the shop's booking URL. */
 export function bookingLink(
   bookingUrl: string,
-  params: { service?: string; barber?: string; src?: string } = {},
+  params: { service?: string | string[]; barber?: string; src?: string } = {},
 ): string {
   const url = new URL(bookingUrl);
   url.searchParams.set("src", params.src ?? "website");
-  if (params.service) url.searchParams.set("service", params.service);
+  // Several services (a main service plus add-ons) travel comma-separated.
+  const service = Array.isArray(params.service) ? params.service.join(",") : params.service;
+  if (service) url.searchParams.set("service", service);
   if (params.barber) url.searchParams.set("barber", params.barber);
   return url.toString();
 }

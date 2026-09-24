@@ -1,3 +1,4 @@
+import type { Design } from "./design";
 import type { DayHours } from "./hours";
 
 /**
@@ -44,6 +45,10 @@ export type SiteData = {
     barberIds: string[];
   }[];
   hours: DayHours[];
+  /** Template and sections, already validated with defaults filled in. */
+  design: Design;
+  /** Prefix for site photos: `${mediaBaseUrl}${ref.path}`. */
+  mediaBaseUrl: string;
   /** Third-party tags the owner added in Settings → Connections. Validated ids only. */
   tracking: {
     ga4MeasurementId: string | null;

@@ -40,6 +40,9 @@ The web app (`apps/web`) has:
   - **Services:** menu, add-ons, prices, durations, deposits, per-barber
     pricing, ordering.
   - **Team:** invite by email, roles, weekly hours with breaks, time off.
+  - **Website → Design:** pick a template (Classic, or the premium Contact
+    Sheet), switch sections on and off, drag to reorder, edit their copy and
+    photos, and see it in a live desktop/phone preview before publishing.
   - **Website:** cookie-free analytics (visitors, Book clicks, the funnel
     to bookings and booked value, top pages, referrers, bookings by
     source), the shop's site link, a live desktop/phone preview, and a

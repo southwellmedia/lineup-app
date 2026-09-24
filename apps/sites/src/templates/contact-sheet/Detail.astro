@@ -1,0 +1,87 @@
+---
+import type { PageContext } from "../../lib/page";
+import { splitLast } from "./util";
+
+/** Service and barber pages: one print, a big title and the facts. */
+type Props = {
+  ctx: PageContext;
+  kicker: string;
+  title: string;
+  lede?: string | null;
+  facts: { label: string; value: string }[];
+  cta: { href: string; label: string };
+  photo?: string | null;
+  alt?: string;
+  more?: { title: string; items: { href: string; label: string; note?: string }[] };
+};
+const { ctx, kicker, title, lede, facts, cta, photo, alt, more } = Astro.props;
+const [titleA, titleB] = splitLast(title);
+---
+
+<section class="detail wrap section">
+  <div class="copy">
+    <a href={`${ctx.base}/`} class="mono back">◂ {ctx.site.shop.name}</a>
+    <span class="mono muted">{kicker}</span>
+    <h1 class="display title">{titleA}{titleB ? <> <span class="light">{titleB}</span></> : null}</h1>
+    {lede ? <p class="italic lede">{lede}</p> : null}
+    {
+      facts.length ? (
+        <dl class="facts">
+          {facts.map((f) => (
+            <div>
+              <dt class="mono muted">{f.label}</dt>
+              <dd class="display">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null
+    }
+    <a href={cta.href} class="btn btn-solid">{cta.label} ▸</a>
+  </div>
+  <figure class="print develop" style="--tilt:2deg" data-parallax="0.05">
+    <div class="frame" style="aspect-ratio: 4 / 5">
+      {photo ? <img src={photo} alt={alt ?? title} /> : <div class="blank" aria-hidden="true">{title.slice(0, 1)}</div>}
+    </div>
+    <figcaption>{alt || title}</figcaption>
+    <div class="tape" style="left:34%"></div>
+  </figure>
+</section>
+{
+  more && more.items.length ? (
+    <section class="more wrap section paper on-paper">
+      <h2 class="display more-title">{more.title}</h2>
+      <ul>
+        {more.items.map((i) => (
+          <li>
+            <a href={i.href}>
+              <span class="display">{i.label}</span>
+              {i.note ? <span class="italic">{i.note}</span> : null}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ) : null
+}
+
+<style>
+  .detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); column-gap: 72px; align-items: center; }
+  .copy { display: flex; flex-direction: column; gap: 28px; align-items: flex-start; }
+  .back { text-decoration: none; color: var(--mute); }
+  .back:hover { color: var(--paper); }
+  .title { font-size: clamp(72px, 10vw, 150px); font-weight: 900; overflow-wrap: anywhere; }
+  .light { font-weight: 300; }
+  .lede { margin: 0; font-size: clamp(20px, 1.8vw, 26px); line-height: 1.35; font-weight: 300; max-width: 40ch; }
+  .facts { display: flex; flex-wrap: wrap; gap: 40px; margin: 0; }
+  .facts dd { margin: 6px 0 0; font-size: 56px; font-weight: 800; }
+  .more-title { font-size: clamp(56px, 7vw, 96px); font-weight: 900; margin-bottom: 28px; }
+  .more ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .more li a { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 16px 0; border-top: 1px solid var(--ink); text-decoration: none; }
+  .more li a .display { font-size: 36px; font-weight: 800; }
+  .more li a .italic { font-size: 20px; }
+  .more li a:hover .display { -webkit-text-stroke: 1.5px var(--ink); color: transparent; }
+  @media (max-width: 900px) {
+    .detail { grid-template-columns: 1fr; row-gap: 56px; }
+    .print { width: min(80%, 380px); justify-self: center; }
+  }
+</style>

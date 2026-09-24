@@ -1,0 +1,19 @@
+---
+import { emphasis, type SectionProps } from "@lineup/site-kit";
+import type { PageContext } from "../../lib/page";
+
+type Props = { ctx: PageContext; props: SectionProps["about"] };
+const { ctx, props } = Astro.props;
+const statement = props.statement || ctx.site.shop.about;
+---
+
+{
+  statement ? (
+    <section id="about" class="mx-auto max-w-4xl px-5 py-8">
+      <p class="font-serif text-3xl leading-snug md:text-5xl">
+        “{emphasis(statement).map((part) => (part.em ? <em>{part.text}</em> : part.text))}”
+      </p>
+      {props.body ? <p class="mt-6 max-w-2xl text-lg text-muted">{props.body}</p> : null}
+    </section>
+  ) : null
+}

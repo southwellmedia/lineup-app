@@ -39,7 +39,7 @@ export function BookingFlow({
   slug: string;
   source: PublicSource;
   /** From ?service= and ?barber= links, e.g. on the shop's website. Ignored if they don't exist. */
-  preselect?: { serviceId?: string; barberId?: string };
+  preselect?: { serviceIds?: string[]; barberId?: string };
 }) {
   const trpc = useTRPC();
   const { data: menu } = useSuspenseQuery(trpc.booking.shop.queryOptions({ slug }));
@@ -49,9 +49,11 @@ export function BookingFlow({
 
   const [step, setStep] = useState<Step>("service");
   const [mainId, setMainId] = useState<string | null>(
-    () => menu.services.find((s) => s.id === preselect.serviceId && !s.isAddon)?.id ?? null,
+    () => menu.services.find((s) => preselect.serviceIds?.includes(s.id) && !s.isAddon)?.id ?? null,
   );
-  const [addonIds, setAddonIds] = useState<string[]>([]);
+  const [addonIds, setAddonIds] = useState<string[]>(() =>
+    menu.services.filter((s) => s.isAddon && preselect.serviceIds?.includes(s.id)).map((s) => s.id),
+  );
   const [barber, setBarber] = useState<string | null>(null);
   const [hold, setHold] = useState<(Hold & { staffId: string }) | null>(null);
   const [confirmed, setConfirmed] = useState<Confirmed | null>(null);
