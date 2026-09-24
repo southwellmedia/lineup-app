@@ -7,7 +7,11 @@ export const metadata: Metadata = { title: "Website · Lineup" };
 
 export default async function WebsitePage({ params }: { params: Promise<{ shop: string }> }) {
   const shop = await managerShop((await params).shop);
-  await getQueryClient().prefetchQuery(trpc.website.overview.queryOptions({ shopId: shop.id }));
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery(trpc.website.overview.queryOptions({ shopId: shop.id })),
+    queryClient.prefetchQuery(trpc.website.analytics.queryOptions({ shopId: shop.id, days: 30 })),
+  ]);
   return (
     <HydrateClient>
       <WebsiteOverview />

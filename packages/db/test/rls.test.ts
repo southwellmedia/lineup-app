@@ -35,7 +35,15 @@ describe("tenant isolation", () => {
 
   it("gives anonymous visitors no direct table access", async () => {
     await createShop(db.pool);
-    for (const table of ["shops", "staff", "services", "clients", "appointments", "payments"]) {
+    for (const table of [
+      "shops",
+      "staff",
+      "services",
+      "clients",
+      "appointments",
+      "payments",
+      "site_events",
+    ]) {
       const { rowCount } = await db.asAnon((c) => c.query(`SELECT 1 FROM ${table}`));
       expect(rowCount, table).toBe(0);
     }

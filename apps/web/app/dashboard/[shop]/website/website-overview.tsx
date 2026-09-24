@@ -7,18 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Card, CardTitle, EmptyState, PageHeader } from "@/components/ui";
 import { useShop } from "@/components/shop-context";
 import { useTRPC } from "@/trpc/client";
-
-const SOURCE_LABELS: Record<string, string> = {
-  website: "Website",
-  booking_link: "Booking link",
-  instagram: "Instagram",
-  google: "Google",
-  phone: "Phone",
-  walk_in: "Walk-in",
-  referral: "Referral",
-  import: "Imported",
-  other: "Other",
-};
+import { Performance } from "./performance";
 
 const SECTION_HREF = {
   settings: "settings#contact",
@@ -34,8 +23,6 @@ export function WebsiteOverview() {
 
   const done = data.checklist.filter((i) => i.done).length;
   const total = data.checklist.length;
-  const booked = data.sources.reduce((sum, s) => sum + s.count, 0);
-  const fromSite = data.sources.find((s) => s.source === "website")?.count ?? 0;
 
   return (
     <>
@@ -57,8 +44,10 @@ export function WebsiteOverview() {
         }
       />
 
+      <Performance />
+
       {data.url ? (
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <Preview url={data.url} />
           <div className="space-y-5">
             <AddressCard url={data.url} customDomain={data.customDomain} />
@@ -118,40 +107,6 @@ export function WebsiteOverview() {
                   </li>
                 ))}
               </ul>
-            </Card>
-
-            <Card>
-              <CardTitle>Where bookings come from</CardTitle>
-              {booked === 0 ? (
-                <p className="text-muted">
-                  No bookings in the last {data.sourceWindowDays} days yet.
-                </p>
-              ) : (
-                <>
-                  <p className="mb-4 text-sm text-muted">
-                    Last {data.sourceWindowDays} days ·{" "}
-                    <span className="font-semibold text-ink">{fromSite}</span> from your website
-                  </p>
-                  <ul className="space-y-3">
-                    {data.sources.map((s) => (
-                      <li key={s.source}>
-                        <div className="mb-1 flex justify-between text-sm">
-                          <span className="font-semibold">
-                            {SOURCE_LABELS[s.source] ?? s.source}
-                          </span>
-                          <span className="tabular-nums text-muted">{s.count}</span>
-                        </div>
-                        <div aria-hidden className="h-2 overflow-hidden rounded-full bg-line">
-                          <div
-                            className={s.source === "website" ? "h-full bg-brand" : "h-full bg-ink"}
-                            style={{ width: `${(s.count / booked) * 100}%` }}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
             </Card>
           </div>
         </div>

@@ -37,8 +37,10 @@ The web app (`apps/web`) has:
   - **Services:** menu, add-ons, prices, durations, deposits, per-barber
     pricing, ordering.
   - **Team:** invite by email, roles, weekly hours with breaks, time off.
-  - **Website:** the shop's site link, a live desktop/phone preview, a
-    checklist of what the site is missing, and bookings by source.
+  - **Website:** cookie-free analytics (visitors, Book clicks, the funnel
+    to bookings and booked value, top pages, referrers, bookings by
+    source), the shop's site link, a live desktop/phone preview, and a
+    checklist of what the site is missing.
   - **Settings:** name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
 
@@ -50,7 +52,7 @@ the service or barber preselected and `src=website`. Locally the site lives at
 `http://localhost:4321/<shop-slug>`; in production it also resolves
 `<slug>.<SITES_ROOT_DOMAIN>` and custom domains.
 
-Next up: website analytics, then Twilio texts.
+Next up: Twilio texts (confirmations and reminders).
 
 ## Getting started
 

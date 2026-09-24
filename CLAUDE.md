@@ -132,6 +132,15 @@ supabase/seed.sql        # local demo shop
 - The dashboard's Website page (`website.overview`) links to the site via
   the web app's `SITES_URL` env (a custom domain wins), shows a completeness
   checklist built from the same `SiteData`, and 30-day bookings by `source`.
+- Analytics are cookie-free. The site's inline script beacons page views and
+  Book clicks to its own `/<slug>/api/event`, which forwards them (with the
+  visitor's IP and user agent) to the web app's
+  `/api/public/sites/[slug]/events`. The booking page records `booking_view`
+  itself. `recordSiteEvent` drops bots and stores only a daily-rotating
+  visitor hash (salt: `ANALYTICS_SALT`, else the Supabase secret key).
+  `site_events` is readable by owners/managers only; `site_analytics()`
+  aggregates it (SECURITY INVOKER). The script skips frames (the dashboard
+  preview) and automated browsers.
 - Book links go through `bookingLink()` so attribution (`src=website`) is
   always set. Pages cache for 60s at the edge.
 

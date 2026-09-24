@@ -1,7 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { brandStyle } from "@lineup/site-kit";
+import { clientIp, referrerOf } from "@/lib/analytics/event";
+import { recordSiteEvent } from "@/lib/analytics/record";
 import { getQueryClient, HydrateClient, serverCaller, trpc } from "@/trpc/server";
 import { BookingFlow, type PublicSource } from "./booking-flow";
 
@@ -49,6 +53,20 @@ export default async function BookingPage({ params, searchParams }: Props) {
   // Seed the client cache so the flow renders instantly without refetching.
   getQueryClient().setQueryData(trpc.booking.shop.queryKey({ slug: shopSlug }), menu);
   const source = (typeof src === "string" && SOURCES[src.toLowerCase()]) || "booking_link";
+
+  // Count the visit after the response is sent, so it never slows the page.
+  const h = await headers();
+  after(() =>
+    recordSiteEvent({
+      shopId: menu.shop.id,
+      kind: "booking_view",
+      path: `/book/${shopSlug}`,
+      referrer: referrerOf(h.get("referer") ?? undefined, undefined, [h.get("host") ?? ""]),
+      source,
+      ip: clientIp(h.get("x-forwarded-for")),
+      userAgent: h.get("user-agent") ?? "",
+    }),
+  );
 
   return (
     // The shop's brand color themes every accent on the page.

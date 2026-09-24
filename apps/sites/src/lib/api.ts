@@ -32,3 +32,29 @@ export function siteBySlug(slug: string): Promise<SiteData | null> {
 export function siteByDomain(domain: string): Promise<SiteData | null> {
   return fetchSite(`/api/public/sites?domain=${encodeURIComponent(domain)}`);
 }
+
+/**
+ * Forwards an analytics event to the web app with the visitor's IP and user
+ * agent, which the web app turns into a daily anonymous id. Best effort.
+ */
+export async function sendEvent(
+  slug: string,
+  body: unknown,
+  client: { ip: string; userAgent: string },
+): Promise<void> {
+  try {
+    await fetch(new URL(`/api/public/sites/${slug}/events`, LINEUP_API_URL), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-lineup-client-ip": client.ip,
+        "x-lineup-client-ua": client.userAgent,
+        ...(LINEUP_API_BYPASS ? { "x-vercel-protection-bypass": LINEUP_API_BYPASS } : {}),
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch {
+    // Analytics never breaks the site.
+  }
+}

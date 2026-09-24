@@ -530,6 +530,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      site_events: {
+        Row: {
+          device: string;
+          id: number;
+          kind: string;
+          occurred_at: string;
+          path: string;
+          referrer: string | null;
+          shop_id: string;
+          source: string | null;
+          visitor: string;
+        };
+        Insert: {
+          device: string;
+          id?: never;
+          kind: string;
+          occurred_at?: string;
+          path: string;
+          referrer?: string | null;
+          shop_id: string;
+          source?: string | null;
+          visitor: string;
+        };
+        Update: {
+          device?: string;
+          id?: never;
+          kind?: string;
+          occurred_at?: string;
+          path?: string;
+          referrer?: string | null;
+          shop_id?: string;
+          source?: string | null;
+          visitor?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "site_events_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       staff: {
         Row: {
           bio: string | null;
@@ -871,6 +915,10 @@ export type Database = {
           updated_at: string;
           weekday: number;
         }[];
+      };
+      site_analytics: {
+        Args: { p_from: string; p_shop_id: string; p_to: string };
+        Returns: Json;
       };
       reschedule_appointment: {
         Args: {
