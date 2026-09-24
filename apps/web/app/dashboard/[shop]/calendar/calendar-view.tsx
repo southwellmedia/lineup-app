@@ -46,6 +46,19 @@ const PX = 1.6;
 /** Drag and hover snap to 5 minutes; clicks on empty time snap to the shop's slot grid. */
 const DRAG_STEP = 5;
 const SPRING = { type: "spring", stiffness: 520, damping: 40, mass: 0.8 } as const;
+/** Week view "All": everyone's bookings in one column per day. */
+const ALL = "all";
+/** One color per barber, in team order, so a shop reads the calendar at a glance. */
+const BARBER_COLORS = [
+  "oklch(0.55 0.15 255)",
+  "oklch(0.58 0.14 155)",
+  "oklch(0.66 0.15 65)",
+  "oklch(0.55 0.17 305)",
+  "oklch(0.6 0.16 355)",
+  "oklch(0.6 0.11 205)",
+  "oklch(0.6 0.14 120)",
+  "oklch(0.5 0.08 40)",
+];
 
 export function CalendarView(props: {
   initialDate: string;
@@ -79,7 +92,18 @@ export function CalendarView(props: {
   }, [date, view, shop.slug]);
 
   const tz = data.timezone;
-  const barberId = weekBarber ?? data.barbers[0]?.id ?? null;
+  const canSeeAll = data.viewer.isManager && data.barbers.length > 1;
+  const barberId = weekBarber ?? (canSeeAll ? ALL : (data.barbers[0]?.id ?? null));
+  const barberColor = useCallback(
+    (id: string) =>
+      BARBER_COLORS[
+        Math.max(
+          0,
+          data.barbers.findIndex((b) => b.id === id),
+        ) % BARBER_COLORS.length
+      ]!,
+    [data.barbers],
+  );
   const today = todayIn(tz);
   const now = useNow(30_000);
 
@@ -174,8 +198,9 @@ export function CalendarView(props: {
   const hours = useMemo(() => {
     const ranges: { start: number; end: number }[] = [];
     for (const col of columns) {
-      const barber = data.barbers.find((b) => b.id === col.barberId);
-      for (const w of barber?.working ?? []) {
+      const here =
+        col.barberId === ALL ? data.barbers : data.barbers.filter((b) => b.id === col.barberId);
+      for (const w of here.flatMap((b) => b.working)) {
         const s = wallMinutes(w.start, col.date, tz);
         const e = wallMinutes(w.end, col.date, tz);
         if (e > 0 && s < 24 * 60) ranges.push({ start: s, end: e });
@@ -305,8 +330,9 @@ export function CalendarView(props: {
     const col = columns.find((c) => c.key === g.key);
     if (!col) return;
     const startsAt = instantAt(col.date, g.start, tz);
+    const staffId = col.barberId === ALL ? d.appointment.staffId : col.barberId;
     if (
-      col.barberId === d.appointment.staffId &&
+      staffId === d.appointment.staffId &&
       startsAt.getTime() === Date.parse(d.appointment.startsAt)
     ) {
       return;
@@ -314,7 +340,7 @@ export function CalendarView(props: {
     move(
       d.appointment,
       {
-        staffId: col.barberId,
+        staffId,
         startsAt: startsAt.toISOString(),
         endsAt: new Date(startsAt.getTime() + d.duration * 60_000).toISOString(),
       },
@@ -439,14 +465,33 @@ export function CalendarView(props: {
           <Segmented
             label="Barber"
             value={barberId ?? ""}
-            options={data.barbers.map((b) => [b.id, b.name] as const)}
+            options={[
+              ...(canSeeAll ? [[ALL, "All"] as const] : []),
+              ...data.barbers.map((b) => [b.id, b.name] as const),
+            ]}
             onChange={setWeekBarber}
           />
         ) : null}
 
-        <p className="ml-auto hidden text-xs text-muted xl:block">
-          Drag a booking to move it · Click empty time to book
-        </p>
+        <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1">
+          {data.barbers.length > 1 ? (
+            <ul aria-label="Barber colors" className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {data.barbers.map((b) => (
+                <li key={b.id} className="flex items-center gap-1.5 text-xs font-semibold">
+                  <span
+                    aria-hidden
+                    className="size-2.5 rounded-full"
+                    style={{ background: barberColor(b.id) }}
+                  />
+                  {b.name}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="hidden text-xs text-muted 2xl:block">
+            Drag to move · Click empty time to book
+          </p>
+        </div>
       </div>
 
       {columns.length === 0 ? (
@@ -463,7 +508,7 @@ export function CalendarView(props: {
             <div
               className="grid min-w-full"
               style={{
-                gridTemplateColumns: `4rem repeat(${columns.length}, minmax(${view === "week" ? "9.5rem" : "15rem"}, 1fr))`,
+                gridTemplateColumns: `4rem repeat(${columns.length}, minmax(${view === "day" ? "15rem" : barberId === ALL ? "12rem" : "9.5rem"}, 1fr))`,
               }}
             >
               {/* Column headers */}
@@ -473,10 +518,11 @@ export function CalendarView(props: {
                   key={`h-${col.key}`}
                   column={col}
                   view={view}
+                  color={col.barberId === ALL ? undefined : barberColor(col.barberId)}
                   isToday={col.date === today}
                   appointments={appointments.filter(
                     (a) =>
-                      a.staffId === col.barberId &&
+                      (col.barberId === ALL || a.staffId === col.barberId) &&
                       DateTime.fromISO(a.startsAt, { zone: tz }).toISODate() === col.date,
                   )}
                   onOpenDay={() => {
@@ -519,7 +565,7 @@ export function CalendarView(props: {
                   canDrag={canDrag}
                   onSlot={(minutes) =>
                     newBooking({
-                      staffId: col.barberId,
+                      staffId: col.barberId === ALL ? undefined : col.barberId,
                       date: col.date,
                       minutes: snap(minutes, data.slotMinutes),
                     })
@@ -536,6 +582,7 @@ export function CalendarView(props: {
                   onBlockPointerUp={() => endDrag(true)}
                   onBlockPointerCancel={() => endDrag(false)}
                   barberName={barberName}
+                  barberColor={barberColor}
                 />
               ))}
             </div>
@@ -606,6 +653,7 @@ function ColumnHeader(props: {
   column: Column;
   view: View;
   isToday: boolean;
+  color?: string;
   appointments: CalendarAppointment[];
   onOpenDay: () => void;
 }) {
@@ -641,7 +689,7 @@ function ColumnHeader(props: {
         </button>
       ) : (
         <div className="flex items-center gap-2.5">
-          <BarberAvatar name={props.column.title} />
+          <BarberAvatar name={props.column.title} color={props.color} />
           <span className="min-w-0">
             <span className="block truncate font-display text-xl font-bold uppercase leading-none">
               {props.column.title}
@@ -672,10 +720,12 @@ function DayColumn(props: {
   onBlockPointerUp: () => void;
   onBlockPointerCancel: () => void;
   barberName: (id: string) => string;
+  barberColor: (id: string) => string;
 }) {
   const { column, data, hours } = props;
   const tz = data.timezone;
-  const barber = data.barbers.find((b) => b.id === column.barberId);
+  const all = column.barberId === ALL;
+  const here = all ? data.barbers : data.barbers.filter((b) => b.id === column.barberId);
   const [hover, setHover] = useState<number | null>(null);
 
   const y = (minutes: number) => (Math.max(minutes, hours.start) - hours.start) * PX;
@@ -687,13 +737,17 @@ function DayColumn(props: {
   });
   const onDay = (b: { start: number; end: number }) => b.end > 0 && b.start < 24 * 60;
 
-  const working = (barber?.working ?? []).map((w) => toBlock(w.start, w.end)).filter(onDay);
-  const timeOff = (barber?.timeOff ?? [])
+  const working = here
+    .flatMap((b) => b.working)
+    .map((w) => toBlock(w.start, w.end))
+    .filter(onDay);
+  // In "All", one person's time off doesn't close the shop, so it isn't drawn.
+  const timeOff = (all ? [] : here.flatMap((b) => b.timeOff))
     .map((t) => ({ ...toBlock(t.start, t.end), reason: t.reason, id: t.id }))
     .filter(onDay);
   const blocks = lanes(
     props.appointments
-      .filter((a) => a.staffId === column.barberId)
+      .filter((a) => all || a.staffId === column.barberId)
       .map((a) => ({ ...toBlock(a.startsAt, a.endsAt), appointment: a }))
       .filter(onDay),
   );
@@ -778,6 +832,8 @@ function DayColumn(props: {
           start={start}
           end={end}
           dimmed={props.draggingId === a.id}
+          color={props.barberColor(a.staffId)}
+          barberInitial={all ? props.barberName(a.staffId).slice(0, 1) : null}
           nowMs={props.nowMs}
           draggable={props.canDrag(a)}
           onSelect={props.onSelect}
@@ -805,7 +861,11 @@ function DayColumn(props: {
               {formatClockMinutes(props.ghost.start + props.ghost.duration)}
             </span>
             <span className="ml-1.5 text-xs font-semibold text-brand">
-              {props.barberName(column.barberId)}
+              {props.barberName(
+                all
+                  ? (props.appointments.find((a) => a.id === props.ghost?.id)?.staffId ?? "")
+                  : column.barberId,
+              )}
             </span>
           </motion.div>
         ) : null}
@@ -824,11 +884,12 @@ function DayColumn(props: {
   );
 }
 
+/* --barber is the booking's barber color (see BARBER_COLORS). */
 const BLOCK_STYLE: Record<string, string> = {
   confirmed:
-    "bg-card text-ink ring-1 ring-line shadow-sm before:bg-ink hover:shadow-md hover:ring-ink/40",
-  checked_in: "bg-brand text-brand-ink shadow-md shadow-brand/30 before:bg-ink/30",
-  completed: "bg-paper text-muted ring-1 ring-line before:bg-line",
+    "bg-[color-mix(in_oklch,var(--barber)_9%,var(--color-card))] text-ink ring-1 ring-[color-mix(in_oklch,var(--barber)_30%,var(--color-line))] shadow-sm before:bg-[var(--barber)] hover:shadow-md",
+  checked_in: "bg-brand text-brand-ink shadow-md shadow-brand/30 before:bg-[var(--barber)]",
+  completed: "bg-paper text-muted ring-1 ring-line before:bg-[var(--barber)] before:opacity-50",
   no_show: "bg-danger/5 text-danger border border-dashed border-danger/50 before:bg-danger/60",
 };
 
@@ -843,6 +904,9 @@ function Block(props: {
   dimmed: boolean;
   draggable: boolean;
   nowMs: number;
+  color: string;
+  /** Shown in "All", where one column mixes barbers. */
+  barberInitial: string | null;
   onSelect: (id: string) => void;
   onPointerDown: (a: CalendarAppointment, e: ReactPointerEvent<HTMLElement>) => void;
   onPointerMove: (e: ReactPointerEvent<HTMLElement>) => void;
@@ -873,6 +937,7 @@ function Block(props: {
       onPointerUp={props.onPointerUp}
       onPointerCancel={props.onPointerCancel}
       aria-label={`${a.client?.name ?? "Client"}, ${formatClockMinutes(props.start)} to ${formatClockMinutes(props.end)}, ${a.services.join(" and ")}`}
+      title={`${formatClockMinutes(props.start)}–${formatClockMinutes(props.end)} · ${a.client?.name ?? "Client"} · ${a.services.join(" + ")}`}
       className={`absolute z-10 flex select-none flex-col overflow-hidden rounded-xl py-1.5 pl-3.5 pr-2 text-left text-xs transition-shadow before:absolute before:inset-y-1.5 before:left-1.5 before:w-[3px] before:rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${BLOCK_STYLE[a.status] ?? BLOCK_STYLE.confirmed} ${props.draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
       style={{
         top: props.top,
@@ -880,9 +945,19 @@ function Block(props: {
         left: `calc(${(props.lane / props.laneCount) * 100}% + 6px)`,
         width: `calc(${100 / props.laneCount}% - 12px)`,
         touchAction: props.draggable ? "pan-y" : undefined,
+        ["--barber" as string]: props.color,
       }}
     >
       <span className="flex items-center gap-1.5">
+        {props.barberInitial ? (
+          <span
+            aria-hidden
+            className="grid size-4 shrink-0 place-items-center rounded-full text-[9px] font-black uppercase text-white"
+            style={{ background: props.color }}
+          >
+            {props.barberInitial}
+          </span>
+        ) : null}
         <span className="shrink-0 font-semibold tabular-nums opacity-80">
           {formatClockMinutes(props.start)}
           {tall ? `–${formatClockMinutes(props.end)}` : ""}

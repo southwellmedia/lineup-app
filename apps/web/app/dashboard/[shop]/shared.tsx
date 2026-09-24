@@ -17,13 +17,23 @@ export function useNow(ms = 1000): number {
   return now;
 }
 
-export function BarberAvatar({ name, size = "md" }: { name: string; size?: "md" | "lg" }) {
+export function BarberAvatar({
+  name,
+  size = "md",
+  color,
+}: {
+  name: string;
+  size?: "md" | "lg";
+  /** A barber's calendar color; brand red when not given. */
+  color?: string;
+}) {
   return (
     <span
       aria-hidden
       className={`grid shrink-0 place-items-center rounded-full bg-brand font-display font-black uppercase text-brand-ink ring-2 ring-paper/20 ${
         size === "lg" ? "size-12 text-2xl" : "size-9 text-lg"
       }`}
+      style={color ? { background: color, color: "white" } : undefined}
     >
       {name.slice(0, 1)}
     </span>
