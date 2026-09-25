@@ -3,6 +3,7 @@ import { appointmentsRouter } from "./routers/appointments";
 import { bookingRouter } from "./routers/booking";
 import { calendarRouter } from "./routers/calendar";
 import { meRouter } from "./routers/me";
+import { photosRouter } from "./routers/photos";
 import { clientsRouter } from "./routers/clients";
 import { scheduleRouter } from "./routers/schedule";
 import { servicesRouter } from "./routers/services";
@@ -21,6 +22,7 @@ export const appRouter = router({
   clients: clientsRouter,
   website: websiteRouter,
   calendar: calendarRouter,
+  photos: photosRouter,
 });
 
 export type AppRouter = typeof appRouter;

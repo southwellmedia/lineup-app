@@ -23,6 +23,7 @@ import {
 import { formatPhone, sourceLabel, STATUS_LABEL } from "@/lib/dashboard/summary";
 import { formatCents } from "@/lib/format/money";
 import { useTRPC } from "@/trpc/client";
+import { ClientPhotoGallery } from "../../photos";
 import type { AppRouter } from "@/trpc/router";
 
 type Detail = inferRouterOutputs<AppRouter>["clients"]["detail"];
@@ -71,6 +72,17 @@ export function ClientProfile({ clientId }: { clientId: string }) {
             {client.email}
           </a>
         ) : null}
+        {client.instagram ? (
+          <a
+            href={`https://instagram.com/${client.instagram}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted underline-offset-4 hover:underline"
+          >
+            @{client.instagram}
+          </a>
+        ) : null}
+        {client.isMinor ? <Badge tone="neutral">Under 18</Badge> : null}
         <Badge tone={client.textsAllowed ? "ink" : "muted"}>
           {client.textsAllowed ? "Texts OK" : "No texts"}
         </Badge>
@@ -95,6 +107,15 @@ export function ClientProfile({ clientId }: { clientId: string }) {
           <p className="whitespace-pre-line">{client.notes}</p>
         </Card>
       ) : null}
+
+      <Card className="mb-6">
+        <CardTitle>Photos</CardTitle>
+        <ClientPhotoGallery
+          clientId={client.id}
+          isMinor={client.isMinor}
+          clientInstagram={client.instagram}
+        />
+      </Card>
 
       <Card>
         <CardTitle>History</CardTitle>
@@ -162,6 +183,8 @@ function EditClient({ data, onClose }: { data: Detail; onClose: () => void }) {
     email: c.email ?? "",
     notes: c.notes ?? "",
     preferredStaffId: c.preferredStaffId ?? "",
+    instagram: c.instagram ?? "",
+    isMinor: c.isMinor,
   });
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [error, setError] = useState<string | null>(null);
@@ -179,6 +202,8 @@ function EditClient({ data, onClose }: { data: Detail; onClose: () => void }) {
         email: form.email.trim() || null,
         notes: form.notes.trim() || null,
         preferredStaffId: form.preferredStaffId || null,
+        instagram: form.instagram,
+        isMinor: form.isMinor,
       });
       await queryClient.invalidateQueries({ queryKey: trpc.clients.pathKey() });
       onClose();
@@ -230,6 +255,29 @@ function EditClient({ data, onClose }: { data: Detail; onClose: () => void }) {
               ))}
             </Select>
           </Field>
+          <Field
+            label="Instagram"
+            htmlFor="e-ig"
+            error={errors.instagram}
+            hint="Only for tagging photos they've agreed to share."
+          >
+            <Input
+              id="e-ig"
+              value={form.instagram}
+              placeholder="@handle"
+              autoComplete="off"
+              onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+            />
+          </Field>
+          <label className="flex cursor-pointer items-center gap-2 self-end pb-3 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={form.isMinor}
+              onChange={(e) => setForm({ ...form, isMinor: e.target.checked })}
+              className="size-4 accent-[var(--color-ink)]"
+            />
+            Under 18 (photos stay private)
+          </label>
           <Field label="Notes" htmlFor="e-notes" error={errors.notes} className="sm:col-span-2">
             <Textarea
               id="e-notes"

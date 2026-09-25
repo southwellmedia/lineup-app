@@ -14,6 +14,7 @@ import { chairTime, formatClock } from "@/lib/dashboard/chair";
 import { formatPhone, sourceLabel } from "@/lib/dashboard/summary";
 import { formatCents } from "@/lib/format/money";
 import { useTRPC } from "@/trpc/client";
+import { VisitPhotos } from "../photos";
 import { ActionButton, BarberAvatar, PayPanel, useNow } from "../shared";
 import type { BookingDraft } from "./booking-panel";
 import type { CalendarAppointment, CalendarData } from "./calendar-view";
@@ -235,6 +236,14 @@ export function AppointmentPanel(props: {
                 </Link>
               ) : null}
             </div>
+          </motion.section>
+        ) : null}
+
+        {/* Photos: snap the finished cut; see what they had last time. */}
+        {client ? (
+          <motion.section variants={item} className="rounded-2xl p-4 ring-1 ring-line">
+            <p className="mb-3 text-sm font-semibold">Photos</p>
+            <VisitPhotos clientId={client.id} appointmentId={a.id} />
           </motion.section>
         ) : null}
 

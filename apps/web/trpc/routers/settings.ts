@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { normalizePhone } from "@/lib/booking/phone";
+import { instagramHandle } from "@/lib/social/instagram";
 import {
   parseGa4,
   parseMetaPixel,
@@ -89,21 +90,7 @@ export const settingsRouter = router({
           .or(z.literal(""))
           .transform((v) => v || null)
           .nullable(),
-        instagram: z
-          .string()
-          .trim()
-          .transform((v) =>
-            v
-              .replace(/^@/, "")
-              .replace(/^https?:\/\/(www\.)?instagram\.com\//, "")
-              .replace(/\/$/, ""),
-          )
-          .refine(
-            (v) => v === "" || /^[A-Za-z0-9._]{1,30}$/.test(v),
-            "Use just the handle, like southsidecuts.",
-          )
-          .transform((v) => v || null)
-          .nullable(),
+        instagram: instagramHandle.nullable(),
         addressLine: optionalText(200),
         city: optionalText(100),
         region: optionalText(100),

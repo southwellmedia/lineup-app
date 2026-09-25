@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { normalizePhone } from "@/lib/booking/phone";
+import { instagramHandle } from "@/lib/social/instagram";
 import { unwrap } from "../errors";
 import { router, shopProcedure } from "../init";
 
@@ -21,6 +22,10 @@ const clientFields = z.object({
   email: z.string().trim().toLowerCase().email().max(254).nullable(),
   notes: z.string().trim().max(2000).nullable(),
   preferredStaffId: z.string().uuid().nullable(),
+  /** For tagging in shared photos, when the client agrees. */
+  instagram: instagramHandle.nullable().optional(),
+  /** Kids' photos always stay private. */
+  isMinor: z.boolean().optional(),
 });
 
 /** Strips characters that would break a PostgREST `or` filter. */
@@ -79,7 +84,9 @@ export const clientsRouter = router({
       const [client, stats, appointments, staff] = await Promise.all([
         ctx.supabase
           .from("clients")
-          .select("id, name, phone, email, notes, preferred_staff_id, sms_consent_at, created_at")
+          .select(
+            "id, name, phone, email, notes, preferred_staff_id, sms_consent_at, created_at, instagram, is_minor",
+          )
           .eq("shop_id", ctx.shopId)
           .eq("id", input.clientId)
           .maybeSingle(),
@@ -125,6 +132,8 @@ export const clientsRouter = router({
           preferredStaffId: c.preferred_staff_id,
           textsAllowed: c.sms_consent_at !== null,
           since: c.created_at,
+          instagram: c.instagram,
+          isMinor: c.is_minor,
         },
         stats: {
           visits: s?.visits ?? 0,
@@ -161,6 +170,8 @@ export const clientsRouter = router({
         email: input.email,
         notes: input.notes,
         preferred_staff_id: input.preferredStaffId,
+        instagram: input.instagram ?? null,
+        is_minor: input.isMinor ?? false,
       })
       .select("id")
       .single();
@@ -184,6 +195,8 @@ export const clientsRouter = router({
           email: input.email,
           notes: input.notes,
           preferred_staff_id: input.preferredStaffId,
+          ...(input.instagram !== undefined ? { instagram: input.instagram } : {}),
+          ...(input.isMinor !== undefined ? { is_minor: input.isMinor } : {}),
         })
         .eq("id", input.clientId)
         .eq("shop_id", ctx.shopId)
@@ -197,6 +210,16 @@ export const clientsRouter = router({
       }
       if (!unwrap(updated))
         throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+      if (input.isMinor) {
+        // A child's photos can't stay on the website or social.
+        unwrap(
+          await ctx.supabase
+            .from("client_photos")
+            .update({ consent: "private" })
+            .eq("client_id", input.clientId)
+            .neq("consent", "private"),
+        );
+      }
       return { ok: true };
     }),
 });

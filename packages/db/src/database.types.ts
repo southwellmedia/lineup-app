@@ -160,8 +160,52 @@ export type Database = {
           },
         ];
       };
+      client_photos: {
+        Row: {
+          appointment_id: string | null;
+          caption: string | null;
+          client_id: string;
+          consent: Database["public"]["Enums"]["photo_consent"];
+          consent_at: string | null;
+          consent_by: string | null;
+          created_at: string;
+          id: string;
+          path: string;
+          shop_id: string;
+          taken_by: string | null;
+        };
+        Insert: {
+          appointment_id?: string | null;
+          caption?: string | null;
+          client_id: string;
+          consent?: Database["public"]["Enums"]["photo_consent"];
+          consent_at?: string | null;
+          consent_by?: string | null;
+          created_at?: string;
+          id?: string;
+          path: string;
+          shop_id: string;
+          taken_by?: string | null;
+        };
+        Update: {
+          appointment_id?: string | null;
+          caption?: string | null;
+          client_id?: string;
+          consent?: Database["public"]["Enums"]["photo_consent"];
+          consent_at?: string | null;
+          consent_by?: string | null;
+          created_at?: string;
+          id?: string;
+          path?: string;
+          shop_id?: string;
+          taken_by?: string | null;
+        };
+        Relationships: [];
+      };
       clients: {
         Row: {
+          instagram: string | null;
+          is_minor: boolean;
           created_at: string;
           email: string | null;
           email_consent_at: string | null;
@@ -176,6 +220,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          instagram?: string | null;
+          is_minor?: boolean;
           created_at?: string;
           email?: string | null;
           email_consent_at?: string | null;
@@ -190,6 +236,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          instagram?: string | null;
+          is_minor?: boolean;
           created_at?: string;
           email?: string | null;
           email_consent_at?: string | null;
@@ -1007,6 +1055,7 @@ export type Database = {
       };
     };
     Enums: {
+      photo_consent: "private" | "portfolio" | "social";
       appointment_status:
         "held" | "confirmed" | "checked_in" | "completed" | "cancelled" | "no_show" | "expired";
       booking_actor: "client" | "staff" | "chat_agent" | "voice_agent" | "import";
@@ -1147,6 +1196,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      photo_consent: ["private", "portfolio", "social"],
       appointment_status: [
         "held",
         "confirmed",
