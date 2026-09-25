@@ -1,5 +1,5 @@
 ---
-import { openStatus, type SectionProps } from "@lineup/site-kit";
+import { heroLines, openStatus, type SectionProps } from "@lineup/site-kit";
 import type { PageContext } from "../../lib/page";
 import { enabledSection } from "../../lib/shop-view";
 import { heroSize, price } from "./util";
@@ -8,10 +8,12 @@ type Props = { ctx: PageContext; props: SectionProps["hero"] };
 const { ctx, props } = Astro.props;
 const { site, base } = ctx;
 
-const words = site.shop.name.trim().split(/\s+/);
-const first = (words[0] ?? site.shop.name).split("");
-const rest = words.slice(1).join(" ");
-const size = heroSize([words[0] ?? "", rest]);
+const [lineOne, rest] = heroLines(site.shop.name, props);
+const first = lineOne.split("");
+// Both lines share one size, set so line one fills its column. A short
+// second line sits beside the intro; a long one gets its own row.
+const size = heroSize(lineOne);
+const stacked = rest.length > 6;
 
 const status = openStatus(site.hours, site.shop.timezone, new Date());
 const place = site.shop.neighborhood ?? site.shop.address?.city ?? null;
@@ -29,12 +31,12 @@ const photo = ctx.media(props.image);
 
 <section class="hero" id="top">
   <div class="hero-grid wrap">
-    <div class="name-col" style={`--name:${size}`}>
+    <div class="name-col" style={`--name:${size};--name2:min(${size}, ${heroSize(rest)})`}>
       <div class="mono muted meta"><span>{eyebrow}</span><span>{status.text}</span></div>
-      <h1 class="display first" aria-label={site.shop.name}>
+      <h1 class="display first" aria-label={[lineOne, rest].filter(Boolean).join(" ")}>
         {first.map((c, i) => <span class="ch" style={`--i:${i}`} aria-hidden="true">{c}</span>)}
       </h1>
-      <div class={`second-row ${rest ? "" : "solo"}`}>
+      <div class={`second-row ${rest ? "" : "solo"} ${stacked ? "stacked" : ""}`}>
         {rest ? <span class="display last" aria-hidden="true">{rest}</span> : null}
         <div class="intro">
           <svg class="swoosh" viewBox="0 0 480 28" preserveAspectRatio="none" aria-hidden="true"><path d="M4 20 C120 6 300 2 476 12" pathLength="1" /></svg>
@@ -88,9 +90,11 @@ const photo = ctx.media(props.image);
   .first { font-size: var(--name); font-weight: 900; display: flex; overflow: hidden; padding-top: .04em; }
   .ch { display: inline-block; animation: up 1s var(--ease) both; animation-delay: calc(120ms + var(--i) * 55ms); }
   @keyframes up { from { transform: translateY(105%); } }
-  .second-row { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 44px; align-items: end; margin-top: 10px; }
-  .second-row.solo { grid-template-columns: minmax(0, 1fr); }
-  .last { font-size: var(--name); font-weight: 300; color: transparent; -webkit-text-stroke: 2px var(--paper); animation: wipe 1.3s .55s var(--ease) both; white-space: nowrap; }
+  .second-row { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 44px; align-items: end; margin-top: 4px; }
+  .second-row.solo, .second-row.stacked { grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
+  .second-row.solo { margin-top: 28px; }
+  /* Pinned to the top so it sits right under line one, not at the bottom of the intro. */
+  .last { font-size: var(--name2, var(--name)); font-weight: 300; line-height: .8; color: transparent; -webkit-text-stroke: 2px var(--paper); animation: wipe 1.3s .55s var(--ease) both; white-space: nowrap; align-self: start; }
   @keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
   .intro { display: flex; flex-direction: column; gap: 24px; padding-bottom: 14px; }
   .swoosh { width: 100%; height: 28px; overflow: visible; }

@@ -61,6 +61,8 @@ export const bookingRouter = router({
         slug: shop.slug,
         timezone: shop.timezone,
         brandColor: shop.brand_color,
+        /** The website template, so the booking page can match it. */
+        template: shop.site_template,
       },
       barbers: unwrap(staff).map((s) => ({
         id: s.id,

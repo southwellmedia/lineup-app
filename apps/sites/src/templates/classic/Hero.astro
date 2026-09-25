@@ -1,5 +1,5 @@
 ---
-import { formatPhone, openStatus, type SectionProps } from "@lineup/site-kit";
+import { formatPhone, heroLines, openStatus, type SectionProps } from "@lineup/site-kit";
 import type { PageContext } from "../../lib/page";
 import { placeName } from "../../lib/page";
 
@@ -11,6 +11,7 @@ const status = openStatus(site.hours, site.shop.timezone, new Date());
 const lede = props.lede || site.shop.tagline;
 const eyebrow = props.eyebrow || (place ? `Barbershop · ${place}` : null);
 const photo = ctx.media(props.image);
+const [lineOne, lineTwo] = props.headline.trim() ? heroLines(site.shop.name, props) : [site.shop.name, ""];
 ---
 
 <section class="relative overflow-hidden">
@@ -21,7 +22,7 @@ const photo = ctx.media(props.image);
         {status.text}
       </p>
       <h1 class="font-display text-[clamp(3rem,14vw,11rem)] font-black uppercase leading-[0.82] tracking-tight [overflow-wrap:anywhere]">
-        {site.shop.name}
+        {lineOne}{lineTwo ? <><br /><span class="text-brand">{lineTwo}</span></> : null}
       </h1>
       {lede ? <p class="mt-5 max-w-xl font-serif text-3xl text-muted md:text-4xl">{lede}</p> : null}
       {eyebrow ? <p class="mt-3 text-sm font-semibold uppercase tracking-[0.2em] text-muted">{eyebrow}</p> : null}

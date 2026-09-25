@@ -172,6 +172,9 @@ supabase/seed.sql        # local demo shop
 - `?preview=1` (optionally `&template=`) on a site page skips every cache
   and renders a saved but not-yet-live template; the dashboard's Design page
   (`/dashboard/<shop>/website/design`) uses it for its live preview.
+- The booking page matches a themed template (`app/book/[shopSlug]/themes.ts`):
+  it swaps the flow's design tokens on a wrapper and adds a scoped
+  stylesheet, so the booking flow itself stays the same for every theme.
 - Adding a template: add its id to `TEMPLATE_IDS`/`TEMPLATES`, the
   `site_template` CHECK constraint (new migration), and a
   `templates/<id>/Home.astro` wired into the `[shop]` pages.

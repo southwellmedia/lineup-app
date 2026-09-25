@@ -22,12 +22,13 @@ export function splitLast(text: string): [string, string] {
 }
 
 /**
- * Hero name size: the template's letters are ~0.55em wide, so the longest
- * word decides how big the name can be and still fit its column.
+ * Hero headline size, so line one fills its column. Big Shoulders' capitals
+ * average ~0.45em wide; 205/length leaves a margin for wide letters and for
+ * the moment before the web font loads.
  */
-export function heroSize(words: string[]): string {
-  const longest = Math.max(4, ...words.map((w) => w.length));
-  return `min(300px, ${Math.floor(165 / longest)}cqi)`;
+export function heroSize(line: string): string {
+  const length = Math.max(4, line.length);
+  return `min(300px, ${Math.floor(205 / length)}cqi)`;
 }
 
 /** Consecutive days with the same hours, e.g. "Tue — Sat · 10 AM – 7 PM". */

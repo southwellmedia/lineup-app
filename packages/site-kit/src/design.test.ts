@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { designInput, emphasis, mediaPaths, mergeDesign, resolveDesign, TEMPLATES } from "./design";
+import {
+  designInput,
+  emphasis,
+  heroLines,
+  mediaPaths,
+  mergeDesign,
+  resolveDesign,
+  TEMPLATES,
+} from "./design";
 
 const SHOP = "00000000-0000-4000-8000-000000000001";
 const photo = { path: `${SHOP}/hero.jpg`, alt: "Chair" };
@@ -10,6 +18,8 @@ describe("resolveDesign", () => {
     expect(d.sections.map((s) => s.type)).toEqual(TEMPLATES["contact-sheet"].sections);
     expect(d.sections.find((s) => s.type === "reviews")?.enabled).toBe(false);
     expect(d.sections.find((s) => s.type === "hero")?.props).toEqual({
+      headline: "",
+      headlineSecond: "",
       eyebrow: "",
       lede: "",
       image: null,
@@ -88,5 +98,20 @@ describe("emphasis", () => {
       { text: "São Paulo", em: true },
       { text: ". <b>", em: false },
     ]);
+  });
+});
+
+describe("heroLines", () => {
+  const hero = resolveDesign("contact-sheet", null).sections[0]!.props as Parameters<
+    typeof heroLines
+  >[1];
+  it("splits the shop name after its first word", () => {
+    expect(heroLines("Southside Cuts", hero)).toEqual(["Southside", "Cuts"]);
+    expect(heroLines("Fadez", hero)).toEqual(["Fadez", ""]);
+  });
+  it("uses a custom headline when set", () => {
+    expect(
+      heroLines("Southside Cuts", { ...hero, headline: " Sharp ", headlineSecond: "Lines" }),
+    ).toEqual(["Sharp", "Lines"]);
   });
 });

@@ -1,0 +1,55 @@
+/*
+ * The booking page, dressed to match the Contact Sheet website template.
+ * The flow's design tokens are swapped on the wrapper (see themes.ts); these
+ * rules add what tokens can't: square corners, deep print shadows, grain and
+ * the film-strip header.
+ */
+.theme-contact-sheet {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+.theme-contact-sheet :is(.rounded-full, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-lg) {
+  border-radius: 2px;
+}
+.theme-contact-sheet [class*="shadow-["] {
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.55);
+}
+.theme-contact-sheet :is(button, a).rounded-full,
+.theme-contact-sheet .cs-mono {
+  font-family: "DM Mono", ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+}
+.theme-contact-sheet .cs-grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: cs-grain 1.2s steps(6) infinite;
+}
+@keyframes cs-grain {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-3%, 2%);
+  }
+  66% {
+    transform: translate(2%, -3%);
+  }
+}
+.theme-contact-sheet .cs-sprockets {
+  height: 9px;
+  background-image: repeating-linear-gradient(90deg, #f2f0eb 0 12px, transparent 12px 30px);
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-contact-sheet .cs-grain {
+    animation: none;
+  }
+}

@@ -14,6 +14,7 @@ export { openStatus } from "./open-status";
 export {
   designInput,
   emphasis,
+  heroLines,
   isTemplateId,
   media,
   mediaPaths,

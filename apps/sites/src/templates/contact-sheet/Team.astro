@@ -43,7 +43,7 @@ const [titleA, titleB] = splitLast(props.title || "The Chairs");
   .team { border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 56px; }
   .title { font-size: clamp(88px, 11vw, 160px); font-weight: 900; }
   .light { font-weight: 300; }
-  .prints { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 56px 40px; }
+  .prints { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 360px)); justify-content: start; gap: 64px 56px; }
   .barber { display: flex; flex-direction: column; gap: 22px; align-items: flex-start; }
   .barber .print { width: 100%; }
   .barber .print:hover { transform: rotate(0deg) translateY(-6px); }

@@ -41,6 +41,13 @@ const images = (max: number) => z.array(media).max(max).default([]);
 
 export const sectionProps = {
   hero: z.object({
+    /**
+     * The big headline. Blank = the shop's name (first word on line one, the
+     * rest outlined on line two). Set line one, and optionally line two, for
+     * a custom headline like "Sharp / Lines".
+     */
+    headline: text(40),
+    headlineSecond: text(40),
     /** Small line above the name, e.g. "Barbershop · Est. 2016". Blank = automatic. */
     eyebrow: text(80),
     /** The intro sentence. Blank = the shop's tagline. */
@@ -109,6 +116,16 @@ export const sectionProps = {
 } satisfies Record<SectionType, z.ZodType>;
 
 export type SectionProps = { [K in SectionType]: z.infer<(typeof sectionProps)[K]> };
+
+/**
+ * The hero's two headline lines: the custom headline if set, otherwise the
+ * shop name split after its first word ("Southside" / "Cuts").
+ */
+export function heroLines(shopName: string, hero: SectionProps["hero"]): [string, string] {
+  if (hero.headline.trim()) return [hero.headline.trim(), hero.headlineSecond.trim()];
+  const words = shopName.trim().split(/\s+/);
+  return [words[0] ?? shopName, words.slice(1).join(" ")];
+}
 
 export type Section = {
   [K in SectionType]: { id: string; type: K; enabled: boolean; props: SectionProps[K] };

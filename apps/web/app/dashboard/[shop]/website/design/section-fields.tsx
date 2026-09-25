@@ -1,7 +1,7 @@
 "use client";
 
 import type { Section, SectionProps, SectionType } from "@lineup/site-kit";
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { ImageField, ImageListField } from "./image-field";
 
 export type EditorLists = {
@@ -194,8 +194,58 @@ function PhotoMap(props: {
 /* -------------------------------------------------------------- sections */
 
 function HeroFields({ value, onChange }: FieldsProps<"hero">) {
+  const custom = value.headline.trim() !== "";
+  const [mode, setMode] = useState<"name" | "custom">(custom ? "custom" : "name");
   return (
     <div className="space-y-4">
+      <fieldset>
+        <legend className="mb-1.5 text-sm font-semibold">Headline</legend>
+        <div role="radiogroup" className="grid grid-cols-2 gap-1.5">
+          {(
+            [
+              ["name", "Shop name", "Your name, big"],
+              ["custom", "Custom headline", "Your own words"],
+            ] as const
+          ).map(([m, label, hint]) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mode === m}
+              onClick={() => {
+                setMode(m);
+                if (m === "name") onChange({ ...value, headline: "", headlineSecond: "" });
+              }}
+              className="rounded-xl p-2.5 text-left ring-1 ring-line hover:ring-ink aria-checked:bg-ink aria-checked:text-paper aria-checked:ring-ink"
+            >
+              <span className="block text-sm font-semibold">{label}</span>
+              <span className="block text-xs opacity-70">{hint}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      {mode === "custom" ? (
+        <div className="grid grid-cols-2 gap-2">
+          <Text
+            label="Line one"
+            max={40}
+            value={value.headline}
+            onChange={(headline) => onChange({ ...value, headline })}
+            placeholder="Sharp"
+          />
+          <Text
+            label="Line two (outlined)"
+            max={40}
+            value={value.headlineSecond}
+            onChange={(headlineSecond) => onChange({ ...value, headlineSecond })}
+            placeholder="Lines"
+          />
+          <p className="col-span-2 text-xs text-muted">
+            Short words look best. Line one sets the size; leave line one empty to go back to your
+            shop name.
+          </p>
+        </div>
+      ) : null}
       <Text
         label="Intro line"
         multiline
@@ -205,7 +255,7 @@ function HeroFields({ value, onChange }: FieldsProps<"hero">) {
         placeholder="Blank uses your tagline from Settings"
       />
       <Text
-        label="Small line above your name"
+        label="Small line above the headline"
         max={80}
         value={value.eyebrow}
         onChange={(eyebrow) => onChange({ ...value, eyebrow })}

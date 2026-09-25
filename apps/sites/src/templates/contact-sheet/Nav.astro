@@ -23,8 +23,8 @@ const area = site.shop.neighborhood ?? site.shop.address?.city ?? site.shop.name
 <header class="nav" data-nav>
   <div class="nav-inner wrap">
     <a href={home} class="mono brand">
-      {code} <span aria-hidden="true">▸</span>
-      {street ? <span class="hide-sm">{street} ▸ </span> : null}{area}
+      {code}{" "}<span aria-hidden="true">▸</span>{" "}
+      {street ? <span class="hide-sm">{street}{" "}▸{" "}</span> : null}{area}
     </a>
     <nav class="links mono" aria-label="Primary">
       {links.map((l) => <a href={l.href}>{l.label}</a>)}
@@ -65,7 +65,7 @@ const area = site.shop.neighborhood ?? site.shop.address?.city ?? site.shop.name
   @keyframes rise { from { transform: translateY(24px); opacity: 0; } }
   @media (max-width: 900px) {
     .nav-inner { grid-template-columns: 1fr auto; }
-    .links, .hide-sm, .reserve { display: none; }
+    .links, .hide-sm, .right .reserve { display: none; }
     .menu-btn { display: block; }
   }
 </style>
