@@ -66,6 +66,7 @@ export function BookingPanel(props: {
   const [source, setSource] = useState<Source>(draft.walkIn ? "walk_in" : "phone");
   const [note, setNote] = useState("");
   const [checkIn, setCheckIn] = useState(draft.walkIn);
+  const [textsOk, setTextsOk] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const offered = useMemo(
@@ -164,6 +165,7 @@ export function BookingPanel(props: {
       source,
       note: note.trim() || undefined,
       checkIn: checkIn && source === "walk_in",
+      textsOk,
     });
   };
 
@@ -388,6 +390,23 @@ export function BookingPanel(props: {
             </label>
           ) : null}
         </div>
+
+        {source !== "walk_in" ? (
+          <label className="flex cursor-pointer items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={textsOk}
+              onChange={(e) => setTextsOk(e.target.checked)}
+              className="mt-0.5 size-4 accent-[var(--color-ink)]"
+            />
+            <span>
+              <span className="font-semibold">Client agrees to texts</span>
+              <span className="block text-muted">
+                Confirmation and reminders by SMS. Ask them first.
+              </span>
+            </span>
+          </label>
+        ) : null}
 
         <Field label="Note (optional)" htmlFor="b-note">
           <Textarea

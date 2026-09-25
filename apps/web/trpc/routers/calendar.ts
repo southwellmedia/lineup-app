@@ -1,9 +1,11 @@
 import { workingWindows } from "@lineup/scheduling";
 import { TRPCError } from "@trpc/server";
+import { after } from "next/server";
 import { z } from "zod";
 import { normalizePhone } from "@/lib/booking/phone";
 import { localDaysWindow, parseTstzRange, toHourMinute } from "@/lib/booking/time";
 import { adminClient } from "@/lib/supabase/admin";
+import { textBooking } from "@/lib/sms/notify";
 import { unwrap } from "../errors";
 import { router, shopProcedure } from "../init";
 
@@ -183,6 +185,8 @@ export const calendarRouter = router({
         source: z.enum(STAFF_SOURCES),
         note: z.string().trim().max(500).optional(),
         checkIn: z.boolean().default(false),
+        /** The client said yes to booking texts (recorded as consent). */
+        textsOk: z.boolean().default(false),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -237,6 +241,16 @@ export const calendarRouter = router({
           ).id;
       }
 
+      if (input.textsOk) {
+        unwrap(
+          await db
+            .from("clients")
+            .update({ sms_consent_at: new Date().toISOString() })
+            .eq("id", clientId)
+            .is("sms_consent_at", null),
+        );
+      }
+
       const appointment = unwrap(
         await db.rpc("create_appointment", {
           p_shop_id: ctx.shopId,
@@ -259,6 +273,8 @@ export const calendarRouter = router({
             .eq("status", "confirmed"),
         );
       }
+      // Walk-ins in the chair don't need a confirmation text.
+      if (!input.checkIn) after(() => textBooking(appointment.id, "confirmation"));
       return { appointmentId: appointment.id };
     }),
 
@@ -310,7 +326,7 @@ export const calendarRouter = router({
         await ctx.supabase
           .from("appointments")
           .select(
-            "id, staff_id, client_id, status, starts_at, ends_at, checked_in_at, completed_at, source, booked_by, total_price_cents, deposit_cents, client_note, created_at",
+            "id, staff_id, client_id, status, starts_at, ends_at, checked_in_at, completed_at, source, booked_by, total_price_cents, deposit_cents, client_note, created_at, client_confirmed_at",
           )
           .eq("shop_id", ctx.shopId)
           .eq("id", input.appointmentId)
@@ -318,7 +334,7 @@ export const calendarRouter = router({
       );
       if (!a) throw new TRPCError({ code: "NOT_FOUND", message: "Appointment not found." });
 
-      const [items, balance, client, stats] = await Promise.all([
+      const [items, balance, client, stats, texts] = await Promise.all([
         ctx.supabase
           .from("appointment_services")
           .select("service_id, name, duration_minutes, price_cents, is_addon")
@@ -342,6 +358,11 @@ export const calendarRouter = router({
               .eq("client_id", a.client_id)
               .maybeSingle()
           : null,
+        ctx.supabase
+          .from("messages")
+          .select("id, direction, kind, body, status, error, created_at")
+          .eq("appointment_id", a.id)
+          .order("created_at"),
       ]);
       const b = unwrap(balance);
       const c = client ? unwrap(client) : null;
@@ -358,7 +379,17 @@ export const calendarRouter = router({
         source: a.source,
         bookedBy: a.booked_by,
         createdAt: a.created_at,
+        clientConfirmedAt: a.client_confirmed_at,
         note: a.client_note,
+        texts: unwrap(texts).map((m) => ({
+          id: m.id,
+          direction: m.direction,
+          kind: m.kind,
+          body: m.body,
+          status: m.status,
+          error: m.error,
+          at: m.created_at,
+        })),
         priceCents: a.total_price_cents,
         depositCents: a.deposit_cents,
         paidCents: b?.paid_cents ?? 0,

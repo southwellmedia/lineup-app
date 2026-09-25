@@ -39,6 +39,19 @@ const item = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 420, damping: 34 } },
 } as const;
 
+const TEXT_KIND: Record<string, string> = {
+  confirmation: "Confirmation",
+  reminder_24h: "Day-before reminder",
+  reminder_2h: "2-hour reminder",
+  reply: "Auto-reply",
+  inbound: "Client",
+};
+const TEXT_STATUS: Record<string, string> = {
+  queued: "sending",
+  failed: "failed",
+  skipped: "not sent (texts not set up)",
+};
+
 export function AppointmentPanel(props: {
   appointment: CalendarAppointment;
   calendar: CalendarData;
@@ -244,6 +257,41 @@ export function AppointmentPanel(props: {
           <motion.section variants={item} className="rounded-2xl p-4 ring-1 ring-line">
             <p className="mb-3 text-sm font-semibold">Photos</p>
             <VisitPhotos clientId={client.id} appointmentId={a.id} />
+          </motion.section>
+        ) : null}
+
+        {/* Texts: what the client was sent and what they replied. */}
+        {detail && (detail.texts.length || detail.clientConfirmedAt) ? (
+          <motion.section variants={item} className="rounded-2xl p-4 ring-1 ring-line">
+            <p className="mb-3 flex items-center justify-between text-sm font-semibold">
+              Texts
+              {detail.clientConfirmedAt ? (
+                <span className="rounded-full bg-ink px-2 py-0.5 text-xs text-paper">
+                  Client confirmed
+                </span>
+              ) : null}
+            </p>
+            <ul className="space-y-2">
+              {detail.texts.map((t) => (
+                <li
+                  key={t.id}
+                  className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                    t.direction === "inbound"
+                      ? "bg-paper ring-1 ring-line"
+                      : "ml-auto bg-ink/[0.06]"
+                  }`}
+                >
+                  <p className="whitespace-pre-line">{t.body}</p>
+                  <p className="mt-1 text-xs text-muted">
+                    {TEXT_KIND[t.kind] ?? t.kind} ·{" "}
+                    {DateTime.fromISO(t.at, { zone: tz }).toFormat("MMM d, h:mm a")}
+                    {t.status === "sent" || t.status === "received"
+                      ? ""
+                      : ` · ${TEXT_STATUS[t.status] ?? t.status}`}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </motion.section>
         ) : null}
 

@@ -179,6 +179,30 @@ supabase/seed.sql        # local demo shop
   `site_template` CHECK constraint (new migration), and a
   `templates/<id>/Home.astro` wired into the `[shop]` pages.
 
+## Text messages
+
+- `lib/sms/`: `templates.ts` (message copy, reply parsing), `reminders.ts`
+  (`reminderDue`), `twilio.ts` (REST client, webhook signatures),
+  `notify.ts` (`textBooking(appointmentId, kind)`, server only).
+- Texts go only to clients with `sms_consent_at` set, only for confirmed
+  bookings, and only when the shop's `sms_enabled` (and per-reminder flags)
+  are on. Staff bookings text the client only if "Client agrees to texts"
+  was ticked; checked-in walk-ins get nothing.
+- Every text in or out is a `messages` row. `messages_once_per_booking`
+  (unique on appointment + kind) is how a send is claimed, so retries never
+  double-text. Without Twilio keys, sends are logged as `skipped`.
+- Confirmations are sent with `after()` from `booking.confirm` and
+  `calendar.book`. Reminders: Supabase pg_cron job `text-reminders` calls
+  `GET /api/cron/reminders` every 15 minutes with `Bearer CRON_SECRET`; the
+  URL and secret live in Vault (`reminders_url`, `cron_secret`) and must
+  match the web app's `CRON_SECRET`.
+- Replies arrive at `POST /api/webhooks/twilio` (signature checked; set
+  `TWILIO_WEBHOOK_URL` if the public URL differs from the request URL):
+  `C` sets `client_confirmed_at`, `X` cancels unless inside the
+  cancellation window, `STOP` clears consent.
+- Env: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (number or
+  `MG…` Messaging Service), `CRON_SECRET`. US numbers need A2P 10DLC.
+
 ## Tenancy and security
 
 - The tenant is `shop_id`. A solo barber is a shop on the `solo` plan with one

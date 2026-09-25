@@ -1,10 +1,12 @@
 import { findAvailableSlots, isSlotAvailable } from "@lineup/scheduling";
 import { TRPCError } from "@trpc/server";
+import { after } from "next/server";
 import { z } from "zod";
 import { getShopBySlug, loadBookingContext } from "@/lib/booking/context";
 import { normalizePhone } from "@/lib/booking/phone";
 import { localDaysWindow } from "@/lib/booking/time";
 import { adminClient } from "@/lib/supabase/admin";
+import { textBooking } from "@/lib/sms/notify";
 import { unwrap } from "../errors";
 import { publicProcedure, router } from "../init";
 
@@ -242,6 +244,9 @@ export const bookingRouter = router({
       const appointment = unwrap(
         await db.rpc("confirm_hold", { p_appointment_id: hold.id, p_client_id: clientId }),
       );
+
+      // Text the confirmation after responding, so the client never waits on it.
+      after(() => textBooking(appointment.id, "confirmation"));
 
       return {
         appointmentId: appointment.id,

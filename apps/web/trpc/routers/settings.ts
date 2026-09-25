@@ -8,12 +8,13 @@ import {
   parseSiteVerification,
   type Parsed,
 } from "@/lib/site/connections";
+import { smsConfig } from "@/lib/sms/twilio";
 import { SLUG_PATTERN } from "@/lib/shop/slug";
 import { unwrap } from "../errors";
 import { managerProcedure, router, shopProcedure } from "../init";
 
 const SETTINGS_COLUMNS =
-  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, ga4_measurement_id, meta_pixel_id, google_site_verification" as const;
+  "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, share_clients_between_staff, tagline, about, phone, email, instagram, address_line, city, region, postal_code, neighborhood, ga4_measurement_id, meta_pixel_id, google_site_verification, sms_enabled, sms_reminder_24h, sms_reminder_2h" as const;
 
 /** A pasted tag or id, reduced to the one value we store (null = remove). */
 const connection = (parse: (input: string) => Parsed) =>
@@ -156,6 +157,50 @@ export const settingsRouter = router({
             ga4_measurement_id: input.ga4,
             meta_pixel_id: input.metaPixel,
             google_site_verification: input.siteVerification,
+          })
+          .eq("id", ctx.shopId)
+          .select(SETTINGS_COLUMNS)
+          .single(),
+      ),
+    ),
+
+  /** Whether Twilio is set up, plus how texting has gone in the last 30 days. */
+  texts: managerProcedure.query(async ({ ctx }) => {
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const rows = unwrap(
+      await ctx.supabase
+        .from("messages")
+        .select("status, direction")
+        .eq("shop_id", ctx.shopId)
+        .gte("created_at", since)
+        .limit(5000),
+    );
+    const count = (status: string) => rows.filter((r) => r.status === status).length;
+    return {
+      twilioReady: smsConfig() !== null,
+      sent: count("sent"),
+      failed: count("failed"),
+      skipped: count("skipped"),
+      received: rows.filter((r) => r.direction === "inbound").length,
+    };
+  }),
+
+  updateTexts: managerProcedure
+    .input(
+      z.object({
+        enabled: z.boolean(),
+        reminder24h: z.boolean(),
+        reminder2h: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) =>
+      unwrap(
+        await ctx.supabase
+          .from("shops")
+          .update({
+            sms_enabled: input.enabled,
+            sms_reminder_24h: input.reminder24h,
+            sms_reminder_2h: input.reminder2h,
           })
           .eq("id", ctx.shopId)
           .select(SETTINGS_COLUMNS)

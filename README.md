@@ -47,6 +47,9 @@ The web app (`apps/web`) has:
     to bookings and booked value, top pages, referrers, bookings by
     source), the shop's site link, a live desktop/phone preview, and a
     checklist of what the site is missing.
+  - **Settings → Text messages:** booking confirmations, day-before and
+    2-hour reminders by text (Twilio); clients reply C to confirm, X to
+    cancel, STOP to opt out. The appointment panel shows each text sent.
   - **Settings:** Connections (Google Analytics 4, Meta Pixel, Search Console
     verification for the shop's site), name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
@@ -59,7 +62,7 @@ the service or barber preselected and `src=website`. Locally the site lives at
 `http://localhost:4321/<shop-slug>`; in production it also resolves
 `<slug>.<SITES_ROOT_DOMAIN>` and custom domains.
 
-Next up: Twilio texts (confirmations and reminders).
+Next up: Stripe Connect card payments, then the social app (Instagram posting).
 
 ## Getting started
 

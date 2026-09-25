@@ -68,6 +68,7 @@ export type Database = {
       };
       appointments: {
         Row: {
+          client_confirmed_at: string | null;
           blocked_until: string;
           checked_in_at: string | null;
           completed_at: string | null;
@@ -91,6 +92,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          client_confirmed_at?: string | null;
           blocked_until: string;
           checked_in_at?: string | null;
           completed_at?: string | null;
@@ -114,6 +116,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          client_confirmed_at?: string | null;
           blocked_until?: string;
           checked_in_at?: string | null;
           completed_at?: string | null;
@@ -267,6 +270,51 @@ export type Database = {
             referencedColumns: ["shop_id", "id"];
           },
         ];
+      };
+      messages: {
+        Row: {
+          appointment_id: string | null;
+          body: string;
+          client_id: string | null;
+          created_at: string;
+          direction: string;
+          error: string | null;
+          id: string;
+          kind: Database["public"]["Enums"]["message_kind"];
+          phone: string;
+          provider_id: string | null;
+          shop_id: string | null;
+          status: Database["public"]["Enums"]["message_status"];
+        };
+        Insert: {
+          appointment_id?: string | null;
+          body: string;
+          client_id?: string | null;
+          created_at?: string;
+          direction: string;
+          error?: string | null;
+          id?: string;
+          kind: Database["public"]["Enums"]["message_kind"];
+          phone: string;
+          provider_id?: string | null;
+          shop_id?: string | null;
+          status: Database["public"]["Enums"]["message_status"];
+        };
+        Update: {
+          appointment_id?: string | null;
+          body?: string;
+          client_id?: string | null;
+          created_at?: string;
+          direction?: string;
+          error?: string | null;
+          id?: string;
+          kind?: Database["public"]["Enums"]["message_kind"];
+          phone?: string;
+          provider_id?: string | null;
+          shop_id?: string | null;
+          status?: Database["public"]["Enums"]["message_status"];
+        };
+        Relationships: [];
       };
       payment_accounts: {
         Row: {
@@ -493,6 +541,9 @@ export type Database = {
       };
       shops: {
         Row: {
+          sms_enabled: boolean;
+          sms_reminder_24h: boolean;
+          sms_reminder_2h: boolean;
           site_content: Json;
           site_template: string;
           ga4_measurement_id: string | null;
@@ -526,6 +577,9 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          sms_enabled?: boolean;
+          sms_reminder_24h?: boolean;
+          sms_reminder_2h?: boolean;
           site_content?: Json;
           site_template?: string;
           ga4_measurement_id?: string | null;
@@ -559,6 +613,9 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          sms_enabled?: boolean;
+          sms_reminder_24h?: boolean;
+          sms_reminder_2h?: boolean;
           site_content?: Json;
           site_template?: string;
           ga4_measurement_id?: string | null;
@@ -1055,6 +1112,8 @@ export type Database = {
       };
     };
     Enums: {
+      message_kind: "confirmation" | "reminder_24h" | "reminder_2h" | "reply" | "inbound";
+      message_status: "queued" | "sent" | "failed" | "skipped" | "received";
       photo_consent: "private" | "portfolio" | "social";
       appointment_status:
         "held" | "confirmed" | "checked_in" | "completed" | "cancelled" | "no_show" | "expired";
@@ -1196,6 +1255,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      message_kind: ["confirmation", "reminder_24h", "reminder_2h", "reply", "inbound"],
+      message_status: ["queued", "sent", "failed", "skipped", "received"],
       photo_consent: ["private", "portfolio", "social"],
       appointment_status: [
         "held",
