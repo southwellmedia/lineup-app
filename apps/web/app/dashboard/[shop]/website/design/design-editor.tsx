@@ -134,9 +134,7 @@ export function DesignEditor({ siteUrl }: { siteUrl: string | null }) {
               >
                 ← Website
               </Link>
-              <h1 className="font-display text-5xl font-black uppercase leading-[0.9] tracking-tight">
-                Design
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight">Design</h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {uploading ? (
@@ -210,7 +208,7 @@ export function DesignEditor({ siteUrl }: { siteUrl: string | null }) {
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted">
                       Template
                     </p>
-                    <p className="flex items-center gap-2 truncate font-display text-2xl font-bold uppercase">
+                    <p className="flex items-center gap-2 truncate text-lg font-semibold tracking-tight">
                       {info.name}
                       {info.tier === "premium" ? <PremiumBadge /> : null}
                     </p>

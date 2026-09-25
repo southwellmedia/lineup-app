@@ -103,7 +103,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         <EditClient data={data} onClose={() => setEditing(false)} />
       ) : client.notes ? (
         <Card className="mb-6">
-          <p className="font-serif text-muted">Notes</p>
+          <p className="text-muted">Notes</p>
           <p className="whitespace-pre-line">{client.notes}</p>
         </Card>
       ) : null}
@@ -163,7 +163,7 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "da
     <div className="rounded-2xl border border-line bg-card p-3">
       <dt className="text-xs font-semibold uppercase tracking-wider text-muted">{label}</dt>
       <dd
-        className={`font-display text-2xl font-bold tabular-nums ${tone === "danger" ? "text-danger" : ""}`}
+        className={`text-2xl font-bold tracking-tight tabular-nums ${tone === "danger" ? "text-danger" : ""}`}
       >
         {value}
       </dd>

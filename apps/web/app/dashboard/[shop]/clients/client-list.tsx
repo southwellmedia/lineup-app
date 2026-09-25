@@ -98,7 +98,7 @@ export function ClientList() {
               >
                 <span
                   aria-hidden
-                  className="grid size-10 shrink-0 place-items-center rounded-full bg-paper font-display text-lg font-extrabold uppercase ring-1 ring-line"
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-paper text-sm font-semibold uppercase ring-1 ring-line"
                 >
                   {c.name.slice(0, 1)}
                 </span>
@@ -170,7 +170,7 @@ function AddClient({ onClose }: { onClose: () => void }) {
   return (
     <Card className="mb-6 animate-rise border-ink shadow-[4px_4px_0_0_var(--color-ink)]">
       <form onSubmit={submit} noValidate className="space-y-4">
-        <h2 className="font-display text-3xl font-black uppercase">New client</h2>
+        <h2 className="text-xl font-semibold tracking-tight">New client</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Name" htmlFor="c-name" error={errors.name}>
             <Input

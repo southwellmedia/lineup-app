@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Button } from "@/components/ui";
 import { formatCents } from "@/lib/format/money";
 import { useTRPC } from "@/trpc/client";
 
@@ -24,16 +25,23 @@ export function BarberAvatar({
 }: {
   name: string;
   size?: "md" | "lg";
-  /** A barber's calendar color; brand red when not given. */
+  /** A barber's calendar color; Lineup yellow when not given. */
   color?: string;
 }) {
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center rounded-full bg-brand font-display font-black uppercase text-brand-ink ring-2 ring-paper/20 ${
-        size === "lg" ? "size-12 text-2xl" : "size-9 text-lg"
-      }`}
-      style={color ? { background: color, color: "white" } : undefined}
+      className={`grid shrink-0 place-items-center rounded-full font-semibold uppercase ${
+        color ? "" : "bg-brand text-brand-ink"
+      } ${size === "lg" ? "size-12 text-lg" : "size-9 text-sm"}`}
+      style={
+        color
+          ? {
+              background: `color-mix(in oklch, ${color} 20%, white)`,
+              color: `color-mix(in oklch, ${color} 75%, black)`,
+            }
+          : undefined
+      }
     >
       {name.slice(0, 1)}
     </span>
@@ -168,20 +176,16 @@ export function ActionButton(props: {
   type?: "button" | "submit";
   title?: string;
 }) {
-  const style = props.primary
-    ? "bg-ink text-paper border-ink hover:bg-brand hover:border-brand hover:text-brand-ink"
-    : props.danger
-      ? "border-danger text-danger hover:bg-danger hover:text-paper"
-      : "border-line bg-card hover:border-ink";
   return (
-    <button
+    <Button
+      size="sm"
+      variant={props.primary ? "primary" : props.danger ? "danger" : "secondary"}
       type={props.type ?? "button"}
       onClick={props.onClick}
       disabled={props.disabled}
       title={props.title}
-      className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-40 ${style}`}
     >
       {props.children}
-    </button>
+    </Button>
   );
 }

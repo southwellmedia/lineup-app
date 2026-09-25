@@ -1,10 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import type { Route } from "next";
 import Link from "next/link";
-import { Card, CardTitle, EmptyState, PageHeader } from "@/components/ui";
+import { Card, CardTitle, EmptyState, PageHeader, StatCard } from "@/components/ui";
 import { sourceLabel } from "@/lib/dashboard/summary";
 import { formatCents } from "@/lib/format/money";
 import { useTRPC } from "@/trpc/client";
@@ -108,12 +109,6 @@ export function Overview() {
   );
 }
 
-function Stat(props: { label: string; value: string | number; children: React.ReactNode }) {
-  return (
-    <Card className="p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted">{props.label}</p>
-      <p className="mt-1 font-display text-4xl font-black tabular-nums">{props.value}</p>
-      <p className="mt-1 text-xs text-muted">{props.children}</p>
-    </Card>
-  );
+function Stat(props: { label: string; value: string | number; children: ReactNode }) {
+  return <StatCard label={props.label} value={props.value} hint={props.children} />;
 }

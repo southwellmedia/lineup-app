@@ -168,7 +168,7 @@ export function AppointmentPanel(props: {
           <div className="flex items-end justify-between gap-3 px-4 pb-3 pt-4">
             <div>
               <p className="text-sm text-paper/60">{start.toFormat("cccc, LLLL d")}</p>
-              <p className="font-display text-4xl font-black leading-none tabular-nums">
+              <p className="text-3xl font-bold leading-none tracking-tight tabular-nums">
                 {start.toFormat("h:mm")}
                 <span className="ml-1 text-xl">{start.toFormat("a")}</span>
               </p>
@@ -194,7 +194,7 @@ export function AppointmentPanel(props: {
             <div className="flex items-start gap-3">
               <span
                 aria-hidden
-                className="grid size-12 shrink-0 place-items-center rounded-2xl bg-paper font-display text-2xl font-black uppercase ring-1 ring-line"
+                className="grid size-12 shrink-0 place-items-center rounded-2xl bg-paper text-base font-semibold uppercase ring-1 ring-line"
               >
                 {a.client.name.slice(0, 1)}
               </span>
@@ -322,7 +322,7 @@ export function AppointmentPanel(props: {
           </ul>
           <div className="mt-3 flex items-baseline justify-between border-t border-dashed border-line pt-3">
             <span className="font-semibold">Total</span>
-            <span className="font-display text-2xl font-black tabular-nums">
+            <span className="text-xl font-bold tracking-tight tabular-nums">
               {formatCents(a.priceCents)}
             </span>
           </div>
@@ -475,7 +475,7 @@ function ChairTimer(props: { startsAt: string; endsAt: string; checkedInAt: stri
   );
   return (
     <span
-      className={`ml-auto flex items-center gap-2 rounded-full px-3 py-1 font-display text-lg font-black tabular-nums ${t.over ? "bg-brand text-brand-ink" : "bg-ink text-paper"}`}
+      className={`ml-auto flex items-center gap-2 rounded-full px-3 py-1 text-base font-bold tabular-nums ${t.over ? "bg-brand text-brand-ink" : "bg-ink text-paper"}`}
     >
       <span className="relative flex size-2">
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-current opacity-75" />

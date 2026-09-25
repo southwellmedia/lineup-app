@@ -182,7 +182,7 @@ function Preview({ url }: { url: string }) {
   return (
     <Card className="flex flex-col p-0">
       <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
-        <h2 className="font-display text-2xl font-bold uppercase tracking-tight">Preview</h2>
+        <h2 className="text-[1.0625rem] font-semibold tracking-tight">Preview</h2>
         <div
           role="group"
           aria-label="Preview size"

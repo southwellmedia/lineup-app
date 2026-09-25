@@ -33,7 +33,11 @@ export default async function ShopLayout({ children, params }: Props) {
         isManager: shop.role === "owner" || shop.role === "manager",
       }}
     >
-      <Shell email={email} admin={admin} shops={shops.map((s) => ({ slug: s.slug, name: s.name }))}>
+      <Shell
+        email={email}
+        admin={admin}
+        shops={shops.map((s) => ({ slug: s.slug, name: s.name, plan: s.plan }))}
+      >
         {children}
       </Shell>
     </ShopProvider>

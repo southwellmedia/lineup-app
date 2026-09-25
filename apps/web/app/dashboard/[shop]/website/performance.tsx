@@ -46,7 +46,7 @@ export function Performance() {
     <Card className="p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
         <div>
-          <h2 className="font-display text-2xl font-bold uppercase tracking-tight">Performance</h2>
+          <h2 className="text-[1.0625rem] font-semibold tracking-tight">Performance</h2>
           <p className="text-sm text-muted">
             Cookie-free: visitors are counted anonymously, once a day.
           </p>
@@ -159,7 +159,7 @@ function Stat(props: { label: string; value: string; note?: string; highlight?: 
       <dt className={`text-sm font-semibold ${props.highlight ? "text-paper/70" : "text-muted"}`}>
         {props.label}
       </dt>
-      <dd className="mt-1 font-display text-4xl font-black tabular-nums">{props.value}</dd>
+      <dd className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{props.value}</dd>
       {props.note ? (
         <dd className={`text-sm ${props.highlight ? "text-paper/70" : "text-muted"}`}>
           {props.note}
@@ -245,7 +245,7 @@ function Funnel({ steps }: { steps: [string, number][] }) {
               <span className="mr-1.5 font-semibold text-ink">{i + 1}</span>
               {label}
             </p>
-            <p className="font-display text-3xl font-black tabular-nums">
+            <p className="text-2xl font-bold tracking-tight tabular-nums">
               {value.toLocaleString()}
             </p>
             {share !== null ? (

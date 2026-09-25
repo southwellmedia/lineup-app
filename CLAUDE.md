@@ -106,6 +106,27 @@ supabase/seed.sql        # local demo shop
 - Next 16: request APIs (`params`, `cookies()`) are async, and middleware is
   `proxy.ts`. Next's docs ship in `node_modules/next/dist/docs/`.
 
+## Design system (Lineup's own UI)
+
+- The dashboard, admin and sign-in use the `.app-ui` scope in
+  `apps/web/app/globals.css`: neutral canvas, white cards, near-black
+  sidebar, **Lineup yellow** as the one accent (`brand` inside `.app-ui`),
+  and Geist. Client-facing pages (booking page, shop sites) keep the shop's
+  own brand color and type; don't put `.app-ui` on them.
+- Build screens from `components/ui.tsx` (Button, IconButton, Field, Input,
+  Select, Switch, Card, CardTitle, PageHeader, StatCard, Badge, Chip,
+  Segmented, Avatar, Table/Th/Td, Notice, EmptyState, SoonBadge) and
+  `components/sheet.tsx`. `/dashboard/<shop>/ui` shows them all. Icons come
+  from `lucide-react`.
+- Type: page titles `text-3xl font-bold tracking-tight`, card titles via
+  `CardTitle`; no condensed/uppercase signage type in the app (that's the
+  shop sites' look).
+- Planned sections (Walk-ins, Payments, Booth rent, Reports, AI agents) live
+  in `lib/dashboard/roadmap.ts`: they show in the nav with a "Soon" tag and
+  open a "Coming soon" page (`app/dashboard/[shop]/[feature]`). Building
+  one = add its route folder (static routes win) and remove it from
+  `PLANNED`.
+
 ## Staff sign-in
 
 - Supabase Auth email magic links. `/auth/callback` accepts both `?code=`

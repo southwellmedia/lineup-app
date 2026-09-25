@@ -672,7 +672,7 @@ function ColumnHeader(props: {
           className="group flex w-full items-center gap-2 text-left"
         >
           <span
-            className={`grid size-9 place-items-center rounded-full font-display text-xl font-black transition-colors ${
+            className={`grid size-9 place-items-center rounded-full text-base font-semibold transition-colors ${
               props.isToday
                 ? "bg-brand text-brand-ink"
                 : "bg-paper group-hover:bg-ink group-hover:text-paper"
@@ -691,7 +691,7 @@ function ColumnHeader(props: {
         <div className="flex items-center gap-2.5">
           <BarberAvatar name={props.column.title} color={props.color} />
           <span className="min-w-0">
-            <span className="block truncate font-display text-xl font-bold uppercase leading-none">
+            <span className="block truncate text-base font-semibold leading-tight">
               {props.column.title}
             </span>
             <span className="block truncate text-xs text-muted">{summary}</span>

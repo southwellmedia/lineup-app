@@ -3,7 +3,7 @@
 export default function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="py-10">
-      <h1 className="font-display text-3xl font-black uppercase">Something went wrong</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Something went wrong</h1>
       <p className="mt-1 text-muted">{error.message || "Check your connection and try again."}</p>
       <button
         type="button"

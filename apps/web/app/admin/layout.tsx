@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/logo";
 import { isPlatformAdmin } from "@/lib/admin/platform";
 import { createUserClient } from "@/lib/supabase/server";
 import { AdminNav } from "./admin-nav";
@@ -19,18 +20,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const email = typeof data.claims.email === "string" ? data.claims.email : "";
 
   return (
-    <div className="min-h-dvh">
-      <header className="sticky top-0 z-20 bg-ink text-paper">
+    <div className="app-ui">
+      <header className="sticky top-0 z-20 bg-sidebar text-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="pole h-6 w-2 animate-pole rounded-full ring-1 ring-paper/40"
-            />
-            <span className="font-display text-2xl font-black uppercase tracking-tight">
-              Lineup
-            </span>
-            <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-brand-ink">
+            <Logo compact />
+            <span className="rounded-full bg-brand px-2 py-0.5 text-[0.6875rem] font-bold uppercase tracking-wider text-brand-ink">
               Admin
             </span>
           </div>

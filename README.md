@@ -55,6 +55,12 @@ The web app (`apps/web`) has:
     verification for the shop's site), name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
 
+The dashboard uses Lineup's own design system (Geist, white cards, a dark
+sidebar and Lineup yellow; see `/dashboard/<shop>/ui`). Sections on the
+roadmap (walk-in line, card payments, booth rent and commission, reports,
+AI agents) already appear in the nav marked "Soon", each with a page
+describing what's coming.
+
 Lineup's own team gets a super admin panel at `/admin`: every shop with its
 owner, plan and 30-day activity; plan and premium-template switches;
 suspending a shop (booking page, website and texts go offline, nothing is

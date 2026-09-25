@@ -89,7 +89,7 @@ export function ServicesManager() {
       {groups.map((group) =>
         group.rows.length ? (
           <section key={group.title} className="mb-8">
-            <h2 className="mb-3 font-display text-2xl font-bold uppercase">{group.title}</h2>
+            <h2 className="mb-3 text-lg font-semibold tracking-tight">{group.title}</h2>
             <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
               {group.rows.map((service, i) => (
                 <li key={service.id} className="flex items-center gap-3 p-4">
@@ -259,7 +259,7 @@ function ServiceEditor(props: {
     <Card className="mb-8 animate-rise border-ink shadow-[4px_4px_0_0_var(--color-ink)]">
       <form onSubmit={submit} className="space-y-5" noValidate>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-3xl font-black uppercase">
+          <h2 className="text-xl font-semibold tracking-tight">
             {s ? `Edit ${s.name}` : "New service"}
           </h2>
           <Button variant="ghost" size="sm" onClick={props.onClose}>

@@ -13,8 +13,8 @@ export default async function DashboardIndex() {
   if (await isPlatformAdmin(data?.claims.sub ?? null)) redirect("/admin");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6">
-      <h1 className="font-display text-5xl font-black uppercase leading-[0.9]">No shop yet</h1>
+    <main className="app-ui mx-auto flex max-w-md flex-col justify-center px-6">
+      <h1 className="text-3xl font-bold tracking-tight">No shop yet</h1>
       <p className="mt-3 text-muted">
         You&apos;re signed in, but this email isn&apos;t on any shop&apos;s team. Ask the owner to
         invite you with this email, then sign in again.

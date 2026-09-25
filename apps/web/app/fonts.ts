@@ -1,4 +1,10 @@
-import { Big_Shoulders, Instrument_Sans, Instrument_Serif } from "next/font/google";
+import {
+  Big_Shoulders,
+  Geist,
+  Geist_Mono,
+  Instrument_Sans,
+  Instrument_Serif,
+} from "next/font/google";
 
 /** Condensed signage face for headings. */
 export const display = Big_Shoulders({
@@ -21,5 +27,18 @@ export const serif = Instrument_Serif({
   weight: "400",
   style: "italic",
   variable: "--font-serif",
+  display: "swap",
+});
+
+/** The dashboard's face (Lineup's own UI). */
+export const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+});
+
+export const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
   display: "swap",
 });

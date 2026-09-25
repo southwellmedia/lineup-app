@@ -35,9 +35,7 @@ export function Sheet(props: { title: string; onClose: () => void; children: Rea
     >
       <div className="flex max-h-[92dvh] flex-col sm:h-full sm:max-h-none">
         <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-          <h2 className="font-display text-3xl font-black uppercase leading-none tracking-tight">
-            {props.title}
-          </h2>
+          <h2 className="text-xl font-semibold tracking-tight">{props.title}</h2>
           <button
             type="button"
             onClick={() => ref.current?.close()}

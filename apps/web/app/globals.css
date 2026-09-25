@@ -14,6 +14,11 @@
   --color-brand: var(--brand);
   --color-brand-ink: var(--brand-ink);
   --color-danger: oklch(0.52 0.19 28);
+  --color-success: oklch(0.52 0.13 150);
+  --color-warning: oklch(0.62 0.14 70);
+  --color-sidebar: oklch(0.16 0 0);
+
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --font-display: var(--font-display), "Arial Narrow", sans-serif;
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
@@ -38,6 +43,33 @@
       background-position: 28px 0;
     }
   }
+}
+
+/*
+ * Lineup's own UI (dashboard, admin, sign-in): neutral canvas, white cards,
+ * a near-black sidebar and Lineup yellow as the one accent. Scoped to
+ * .app-ui so client-facing pages (booking, shop sites) keep the shop's
+ * brand. Tailwind utilities read these variables, so a subtree override
+ * restyles everything inside it.
+ */
+.app-ui {
+  --color-paper: oklch(0.962 0.004 90);
+  --color-card: oklch(1 0 0);
+  --color-ink: oklch(0.17 0 0);
+  --color-muted: oklch(0.5 0.006 90);
+  --color-line: oklch(0.915 0.005 90);
+  --brand: oklch(0.87 0.18 95);
+  --brand-ink: oklch(0.17 0 0);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--color-paper);
+  background-image: none;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01";
+  min-height: 100dvh;
 }
 
 :root {
@@ -106,4 +138,12 @@ body {
   .sheet[open]::backdrop {
     animation: none;
   }
+}
+
+/* Native selects keep their behavior; this draws the chevron. */
+.select-chevron {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
 }

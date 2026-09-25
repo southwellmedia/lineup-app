@@ -15,6 +15,7 @@ import {
   Select,
   Switch,
   Textarea,
+  StatCard,
 } from "@/components/ui";
 import { formatCents } from "@/lib/format/money";
 import { useTRPC } from "@/trpc/client";
@@ -44,7 +45,7 @@ export function ShopDetail({ shopId }: { shopId: string }) {
       </Link>
       <header className="mb-6 mt-1 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="flex flex-wrap items-center gap-3 font-display text-5xl font-black uppercase leading-[0.9] tracking-tight">
+          <h1 className="flex flex-wrap items-center gap-3 text-3xl font-bold tracking-tight">
             {shop.name}
             {shop.suspendedAt ? <Badge tone="danger">Suspended</Badge> : null}
           </h1>
@@ -333,11 +334,5 @@ function Warning({ children }: { children: ReactNode }) {
 }
 
 function Stat(props: { label: string; value: string | number; children: ReactNode }) {
-  return (
-    <Card className="p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted">{props.label}</p>
-      <p className="mt-1 font-display text-4xl font-black tabular-nums">{props.value}</p>
-      <p className="mt-1 text-xs text-muted">{props.children}</p>
-    </Card>
-  );
+  return <StatCard label={props.label} value={props.value} hint={props.children} />;
 }
