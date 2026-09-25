@@ -48,8 +48,9 @@ The web app (`apps/web`) has:
     source), the shop's site link, a live desktop/phone preview, and a
     checklist of what the site is missing.
   - **Settings → Text messages:** booking confirmations, day-before and
-    2-hour reminders by text (Twilio); clients reply C to confirm, X to
+    optional 2-hour reminders by text; clients reply C to confirm, X to
     cancel, STOP to opt out. The appointment panel shows each text sent.
+    Lineup sends from its own Twilio account (see "Turning on texts").
   - **Settings:** Connections (Google Analytics 4, Meta Pixel, Search Console
     verification for the shop's site), name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
@@ -63,6 +64,21 @@ the service or barber preselected and `src=website`. Locally the site lives at
 `<slug>.<SITES_ROOT_DOMAIN>` and custom domains.
 
 Next up: Stripe Connect card payments, then the social app (Instagram posting).
+
+## Turning on texts
+
+Texts come from Lineup's Twilio account, not the shops'. Until it's set up,
+every text is logged as `skipped`.
+
+1. Buy a toll-free number in Twilio and submit toll-free verification
+   (use case: appointment confirmations and reminders on behalf of shops).
+2. On the `lineup-web` Vercel project, add `TWILIO_ACCOUNT_SID`,
+   `TWILIO_AUTH_TOKEN` and `TWILIO_FROM` (sensitive), then redeploy.
+3. Set the number's "A message comes in" webhook to
+   `https://<web app domain>/api/webhooks/twilio` (HTTP POST).
+
+Reminders already run: a Supabase cron job calls `/api/cron/reminders` every
+15 minutes with the `CRON_SECRET` stored in Supabase Vault.
 
 ## Getting started
 

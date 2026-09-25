@@ -181,6 +181,15 @@ supabase/seed.sql        # local demo shop
 
 ## Text messages
 
+- Lineup owns the Twilio account; shops never see keys. Pilot: one shared
+  toll-free number, transactional texts only, each text starting with the
+  shop's name. Later: a registered number per shop (10DLC via Twilio
+  sub-accounts), which needs a per-shop sender and per-shop STOP.
+- Texts cost per segment, so every template must fit one (160 GSM-7
+  characters, 70 with any other character). `fit()` in `templates.ts` tries
+  shorter wordings; `segments()` counts. Keep the STOP line in the
+  confirmation. "C" replies get no response; the 2-hour reminder is off by
+  default.
 - `lib/sms/`: `templates.ts` (message copy, reply parsing), `reminders.ts`
   (`reminderDue`), `twilio.ts` (REST client, webhook signatures),
   `notify.ts` (`textBooking(appointmentId, kind)`, server only).

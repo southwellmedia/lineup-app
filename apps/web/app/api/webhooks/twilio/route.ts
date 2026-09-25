@@ -68,21 +68,29 @@ export async function POST(request: NextRequest) {
 
   const found = await bookingFacts(db, last.appointment_id);
   if (!found) return xml(twiml());
-  const { appointment, shop, facts } = found;
+  const { appointment, shop } = found;
   const time = DateTime.fromISO(appointment.starts_at, { zone: shop.timezone }).toFormat(
     "ccc LLL d 'at' h:mm a",
   );
   const call = shop.phone ? ` Call ${formatPhone(shop.phone)}.` : "";
 
+  const active =
+    appointment.status === "confirmed" && Date.parse(appointment.starts_at) >= Date.now();
+
+  // A "C" gets no reply: it would cost a text and tell them nothing new.
+  if (intent === "confirm") {
+    if (active) {
+      await db
+        .from("appointments")
+        .update({ client_confirmed_at: new Date().toISOString() })
+        .eq("id", appointment.id);
+    }
+    return xml(twiml());
+  }
+
   let reply: string;
-  if (appointment.status !== "confirmed" || Date.parse(appointment.starts_at) < Date.now()) {
+  if (!active) {
     reply = `${shop.name}: that booking isn't active anymore.${call}`;
-  } else if (intent === "confirm") {
-    await db
-      .from("appointments")
-      .update({ client_confirmed_at: new Date().toISOString() })
-      .eq("id", appointment.id);
-    reply = `${shop.name}: thanks ${facts.clientName.split(" ")[0]}, you're confirmed for ${time}.`;
   } else if (intent === "cancel") {
     const minutesAway = (Date.parse(appointment.starts_at) - Date.now()) / 60_000;
     if (minutesAway < shop.cancellation_window_minutes) {

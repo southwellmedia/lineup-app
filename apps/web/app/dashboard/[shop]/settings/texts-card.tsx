@@ -7,7 +7,7 @@ import { Badge, Button, Card, CardTitle, Notice, Switch } from "@/components/ui"
 import { useTRPC } from "@/trpc/client";
 
 /** Booking confirmations and reminders by text. */
-export function TextsCard({ webhookUrl }: { webhookUrl: string }) {
+export function TextsCard() {
   const trpc = useTRPC();
   const shop = useShop();
   const queryClient = useQueryClient();
@@ -37,11 +37,7 @@ export function TextsCard({ webhookUrl }: { webhookUrl: string }) {
     <Card id="texts" className="mt-5 scroll-mt-6">
       <CardTitle
         action={
-          stats.twilioReady ? (
-            <Badge tone="ink">Connected</Badge>
-          ) : (
-            <Badge tone="muted">Not connected</Badge>
-          )
+          stats.twilioReady ? <Badge tone="ink">On</Badge> : <Badge tone="muted">Coming soon</Badge>
         }
       >
         Text messages
@@ -58,28 +54,11 @@ export function TextsCard({ webhookUrl }: { webhookUrl: string }) {
           {stats.failed ? `, ${stats.failed} failed` : ""}, {stats.received} replies.
         </p>
       ) : (
-        <div className="mb-5 rounded-xl bg-paper px-4 py-3 text-sm ring-1 ring-line">
-          <p className="font-semibold">Texts aren&apos;t sending yet</p>
-          <p className="mt-1 text-muted">
-            Lineup needs a Twilio account and number. Until then, texts are logged as skipped
-            {stats.skipped ? ` (${stats.skipped} in the last 30 days)` : ""}. To connect:
-          </p>
-          <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted">
-            <li>Create a Twilio account and buy a local number.</li>
-            <li>
-              Register it for A2P 10DLC (Twilio → Messaging → Regulatory compliance). US carriers
-              block unregistered business texts.
-            </li>
-            <li>
-              Add <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code> and{" "}
-              <code>TWILIO_FROM</code> to the web app&apos;s environment.
-            </li>
-            <li>
-              Point the number&apos;s &quot;A message comes in&quot; webhook at{" "}
-              <code className="break-all">{webhookUrl}</code>.
-            </li>
-          </ol>
-        </div>
+        <p className="mb-5 rounded-xl bg-paper px-4 py-3 text-sm text-muted ring-1 ring-line">
+          <span className="font-semibold text-ink">Texting is almost ready.</span> Lineup is
+          finishing carrier registration for its texting number. Choose your settings now and
+          they&apos;ll apply as soon as texts go live; nothing to set up on your side.
+        </p>
       )}
 
       <div className="space-y-4">
@@ -102,7 +81,7 @@ export function TextsCard({ webhookUrl }: { webhookUrl: string }) {
           checked={form.enabled && form.reminder2h}
           onChange={(v) => set("reminder2h", v)}
           label="Reminder 2 hours before"
-          description="For bookings made more than 3 hours ahead."
+          description="Optional. Each reminder is another text, and the day-before one covers most no-shows."
         />
       </div>
 

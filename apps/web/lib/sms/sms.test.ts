@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { reminderDue } from "./reminders";
-import { confirmationText, parseReply, reminderText, type BookingFacts } from "./templates";
+import {
+  confirmationText,
+  parseReply,
+  plain,
+  reminderText,
+  segments,
+  type BookingFacts,
+} from "./templates";
 import { smsConfig, twiml, twilioSignature, validTwilioSignature } from "./twilio";
 
 const facts: BookingFacts = {
@@ -17,8 +24,36 @@ const facts: BookingFacts = {
 describe("texts", () => {
   it("confirms with the shop, service, barber and local time", () => {
     expect(confirmationText(facts)).toBe(
-      "Southside Cuts: you're booked, Jordan. Fade + Beard Trim with Andrea, Fri Sep 25 at 2:30 PM.\n123 W Davis St, Dallas\nReply C to confirm or X to cancel. Reply STOP to opt out.",
+      "Southside Cuts: you're booked, Jordan. Fade + Beard Trim with Andrea, Fri Sep 25 at 2:30 PM. Reply C to confirm, X to cancel, STOP to opt out.",
     );
+  });
+  it("shortens long bookings to fit one segment", () => {
+    const long: BookingFacts = {
+      ...facts,
+      shopName: "The Gentlemen\u2019s Grooming Lounge & Barber Co",
+      clientName: "Christopher Montgomery",
+      services: ["Signature Skin Fade", "Hot Towel Beard Sculpt", "Eyebrow Clean-up"],
+      barberName: "Maximilian",
+    };
+    for (const text of [
+      confirmationText(long),
+      reminderText("reminder_24h", long),
+      reminderText("reminder_2h", {
+        ...long,
+        address: "12345 North Martin Luther King Jr Boulevard, Suite 200, Dallas, TX 75201",
+      }),
+    ]) {
+      expect(segments(text)).toBe(1);
+    }
+    expect(confirmationText(long)).toContain("Signature Skin Fade +2 more");
+    expect(confirmationText(long)).toContain("STOP");
+  });
+  it("counts segments like carriers do", () => {
+    expect(segments("a".repeat(160))).toBe(1);
+    expect(segments("a".repeat(161))).toBe(2);
+    expect(segments(`${"a".repeat(69)}\u2019`)).toBe(1);
+    expect(segments(`${"a".repeat(70)}\u2019`)).toBe(2);
+    expect(segments(plain(`${"a".repeat(150)}\u2019`))).toBe(1);
   });
   it("reminds a day and two hours ahead", () => {
     expect(reminderText("reminder_24h", facts)).toContain("see you tomorrow at 2:30 PM");

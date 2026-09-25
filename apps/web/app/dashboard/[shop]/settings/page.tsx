@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { managerShop } from "@/lib/dashboard/viewer";
 import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 import { ConnectionsCard } from "./connections-card";
@@ -15,13 +14,10 @@ export default async function SettingsPage({ params }: { params: Promise<{ shop:
     queryClient.prefetchQuery(trpc.settings.get.queryOptions({ shopId: shop.id })),
     queryClient.prefetchQuery(trpc.settings.texts.queryOptions({ shopId: shop.id })),
   ]);
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return (
     <HydrateClient>
       <SettingsForm />
-      <TextsCard webhookUrl={`${proto}://${host}/api/webhooks/twilio`} />
+      <TextsCard />
       <ConnectionsCard />
     </HydrateClient>
   );
