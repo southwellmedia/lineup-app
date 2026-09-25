@@ -6,6 +6,7 @@ import { useId, useRef, useState } from "react";
 import { preparePhoto } from "@/lib/media/resize";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { useDesignMedia } from "./media-context";
+import { Skeleton } from "@/components/skeleton";
 
 const BUCKET = "site-media";
 
@@ -168,7 +169,12 @@ function Library({ onPick }: { onPick: (path: string) => void }) {
   return (
     <div className="mt-2 rounded-xl bg-paper p-2 ring-1 ring-line">
       {isLoading ? (
-        <p className="p-2 text-xs text-muted">Loading photos…</p>
+        <div role="status" aria-busy="true" className="grid grid-cols-4 gap-1.5">
+          <span className="sr-only">Loading photos…</span>
+          {Array.from({ length: 8 }, (_, i) => (
+            <Skeleton key={i} className="aspect-square rounded-lg" />
+          ))}
+        </div>
       ) : error ? (
         <p className="p-2 text-xs text-danger">Couldn&apos;t load your photos.</p>
       ) : !data?.length ? (

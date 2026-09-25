@@ -9,6 +9,7 @@ import { rate } from "@/lib/analytics/report";
 import { sourceLabel } from "@/lib/dashboard/summary";
 import { formatCents } from "@/lib/format/money";
 import { useTRPC } from "@/trpc/client";
+import { Skeleton, StatRowSkeleton } from "@/components/skeleton";
 
 type Days = 7 | 30 | 90;
 
@@ -71,7 +72,11 @@ export function Performance() {
       </div>
 
       {!data ? (
-        <p className="px-5 py-10 text-center text-muted">Loading…</p>
+        <div role="status" aria-busy="true" className="space-y-6 p-5">
+          <span className="sr-only">Loading…</span>
+          <StatRowSkeleton count={4} dark={2} />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
       ) : (
         <div className={`space-y-6 p-5 transition-opacity ${isFetching ? "opacity-60" : ""}`}>
           <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">

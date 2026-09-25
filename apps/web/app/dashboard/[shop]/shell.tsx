@@ -9,6 +9,7 @@ import {
   Ellipsis,
   Globe,
   House,
+  LoaderCircle,
   ListOrdered,
   LogOut,
   Scissors,
@@ -20,7 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Route } from "next";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Sheet } from "@/components/sheet";
@@ -155,8 +156,9 @@ export function Shell(props: {
             aria-current={active(item) ? "page" : undefined}
             className="flex flex-col items-center gap-0.5 py-2 text-[0.6875rem] font-medium text-muted aria-[current=page]:text-ink"
           >
-            <span className="grid h-7 w-12 place-items-center rounded-full [[aria-current=page]_&]:bg-brand">
+            <span className="relative grid h-7 w-12 place-items-center rounded-full [[aria-current=page]_&]:bg-brand">
               <item.icon className="size-5" aria-hidden />
+              <PendingHint className="absolute -right-0.5 -top-0.5 size-3" />
             </span>
             {item.label}
           </Link>
@@ -250,12 +252,31 @@ function NavLink({ item, active }: { item: Item; active: boolean }) {
     >
       <item.icon className="size-[1.125rem] shrink-0" aria-hidden />
       <span className="truncate">{item.label}</span>
-      {item.soon ? (
-        <span className="ml-auto rounded-full bg-card/10 px-1.5 py-px text-[0.625rem] font-semibold uppercase tracking-wide text-card/60 [[aria-current=page]_&]:bg-ink/10 [[aria-current=page]_&]:text-ink/70">
-          Soon
-        </span>
-      ) : null}
+      <span className="ml-auto flex items-center gap-2">
+        <PendingHint />
+        {item.soon ? (
+          <span className="rounded-full bg-card/10 px-1.5 py-px text-[0.625rem] font-semibold uppercase tracking-wide text-card/60 [[aria-current=page]_&]:bg-ink/10 [[aria-current=page]_&]:text-ink/70">
+            Soon
+          </span>
+        ) : null}
+      </span>
     </Link>
+  );
+}
+
+/**
+ * A small spinner on the link you just clicked while its page is on the
+ * way. Always rendered (fixed size) so nothing shifts; only its opacity
+ * changes, after a short delay so instant navigations show nothing.
+ */
+function PendingHint({ className }: { className?: string }) {
+  const { pending } = useLinkStatus();
+  return (
+    <LoaderCircle
+      aria-hidden
+      data-pending={pending}
+      className={cx("nav-pending size-3.5 shrink-0 animate-spin", className)}
+    />
   );
 }
 

@@ -147,3 +147,54 @@ body {
   background-repeat: no-repeat;
   background-size: 1rem;
 }
+
+/*
+ * Skeletons: a soft sweep across placeholder shapes. They fade in after a
+ * short delay so fast navigations never flash, and hold still for people
+ * who prefer reduced motion.
+ */
+.skeleton {
+  --sk-base: color-mix(in oklch, var(--color-ink) 7%, transparent);
+  --sk-shine: color-mix(in oklch, var(--color-ink) 2.5%, transparent);
+  background: linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+/* Placeholders on dark surfaces (the emphasized stat card, the sidebar). */
+.skeleton-on-dark .skeleton {
+  --sk-base: oklch(1 0 0 / 0.14);
+  --sk-shine: oklch(1 0 0 / 0.06);
+}
+.skeleton-page {
+  animation: skeleton-in 0.25s ease-out 0.12s both;
+}
+@keyframes skeleton-sweep {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@keyframes skeleton-in {
+  from {
+    opacity: 0;
+  }
+}
+/* The pending hint on a nav link while its page is on the way. */
+.nav-pending {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.nav-pending[data-pending="true"] {
+  opacity: 1;
+  transition-delay: 0.1s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+  .skeleton-page {
+    animation: none;
+  }
+}

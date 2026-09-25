@@ -118,6 +118,15 @@ supabase/seed.sql        # local demo shop
   Segmented, Avatar, Table/Th/Td, Notice, EmptyState, SoonBadge) and
   `components/sheet.tsx`. `/dashboard/<shop>/ui` shows them all. Icons come
   from `lucide-react`.
+- Loading: every route has a `loading.tsx` built from
+  `components/skeleton.tsx` (Skeleton, SkeletonPage, PageHeaderSkeleton,
+  StatRowSkeleton, CardSkeleton, ListSkeleton, TableSkeleton,
+  FormSkeleton) in the same grid as the page, so nothing shifts when data
+  lands. `SkeletonPage` fades in after a beat so fast navigations show
+  nothing. New pages need a matching loading.tsx. In-page refetches (the
+  calendar's date changes) use `useTransition` and dim the current view
+  instead of falling back to a skeleton. Nav links show a small spinner via
+  `useLinkStatus` while a page is on the way. No progress bars.
 - Type: page titles `text-3xl font-bold tracking-tight`, card titles via
   `CardTitle`; no condensed/uppercase signage type in the app (that's the
   shop sites' look).

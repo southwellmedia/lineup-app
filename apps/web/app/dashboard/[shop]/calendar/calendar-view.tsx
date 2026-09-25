@@ -10,6 +10,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useTransition,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useShop } from "@/components/shop-context";
@@ -70,8 +71,13 @@ export function CalendarView(props: {
   const shop = useShop();
   const queryClient = useQueryClient();
 
-  const [date, setDate] = useState(props.initialDate);
-  const [view, setView] = useState<View>(props.initialView);
+  const [date, setDateNow] = useState(props.initialDate);
+  // Changing the date or view fetches a new range. Doing it in a transition
+  // keeps the current grid on screen (dimmed) instead of the page skeleton.
+  const [switching, startTransition] = useTransition();
+  const setDate = useCallback((next: string) => startTransition(() => setDateNow(next)), []);
+  const [view, setViewNow] = useState<View>(props.initialView);
+  const setView = useCallback((next: View) => startTransition(() => setViewNow(next)), []);
   const [weekBarber, setWeekBarber] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -503,7 +509,8 @@ export function CalendarView(props: {
           <motion.div
             layoutScroll
             ref={scroller}
-            className="relative max-h-[calc(100dvh-15rem)] overflow-auto rounded-3xl border border-line bg-card shadow-sm md:max-h-[calc(100dvh-13.5rem)]"
+            aria-busy={switching}
+            className={`relative max-h-[calc(100dvh-15rem)] overflow-auto rounded-3xl border border-line bg-card shadow-sm transition-opacity duration-200 md:max-h-[calc(100dvh-13.5rem)] ${switching ? "opacity-55" : ""}`}
           >
             <div
               className="grid min-w-full"

@@ -3,6 +3,12 @@
 import { Plus, Bell, Download } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import {
+  ListSkeleton,
+  PageHeaderSkeleton,
+  StatRowSkeleton,
+  TableSkeleton,
+} from "@/components/skeleton";
+import {
   Avatar,
   Badge,
   Button,
@@ -218,6 +224,21 @@ export function Gallery() {
             ))}
           </tbody>
         </Table>
+      </div>
+
+      <h2 className="mb-3 mt-10 text-[1.0625rem] font-semibold tracking-tight">Loading states</h2>
+      <p className="mb-4 max-w-2xl text-sm text-muted">
+        Every route has a loading.tsx built from components/skeleton.tsx in the same layout as the
+        page, so nothing jumps when data arrives. Skeletons fade in after a beat, so quick
+        navigations show nothing.
+      </p>
+      <div className="rounded-2xl border border-dashed border-line p-4">
+        <PageHeaderSkeleton actions={2} description />
+        <StatRowSkeleton count={4} dark={3} />
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <ListSkeleton rows={4} />
+          <TableSkeleton rows={4} cols={4} />
+        </div>
       </div>
     </>
   );
