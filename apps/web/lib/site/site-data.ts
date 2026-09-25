@@ -39,9 +39,11 @@ export async function loadSiteData(
   lookup: { slug: string } | { domain: string },
   appOrigin: string,
   /** Preview only: render another template's saved content. */
-  options: { template?: TemplateId } = {},
+  options: { template?: TemplateId; includeSuspended?: boolean } = {},
 ): Promise<SiteData | null> {
-  const query = db.from("shops").select(SHOP_COLUMNS);
+  // A suspended shop has no public site (its own dashboard still sees the data).
+  const all = db.from("shops").select(SHOP_COLUMNS);
+  const query = options.includeSuspended ? all : all.is("suspended_at", null);
   const shop = unwrap(
     await (
       "slug" in lookup

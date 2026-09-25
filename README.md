@@ -55,6 +55,11 @@ The web app (`apps/web`) has:
     verification for the shop's site), name, booking link, timezone, brand color, booking rules.
     Owners and managers see everything; barbers see their chair and hours.
 
+Lineup's own team gets a super admin panel at `/admin`: every shop with its
+owner, plan and 30-day activity; plan and premium-template switches;
+suspending a shop (booking page, website and texts go offline, nothing is
+deleted); and an append-only audit log of every change.
+
 Shop websites (`apps/sites`, Astro) render each shop's site from the public
 site API (`/api/public/sites/<slug>`): home page with menu, barbers, hours
 and map link; a page per service and barber; sitemap, robots and

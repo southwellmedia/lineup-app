@@ -34,7 +34,9 @@ export const websiteRouter = router({
     if (!shop) throw new TRPCError({ code: "NOT_FOUND", message: "Shop not found." });
 
     // Same public data the website renders, so the checklist matches the site.
-    const site = await loadSiteData(adminClient(), { slug: shop.slug }, "");
+    const site = await loadSiteData(adminClient(), { slug: shop.slug }, "", {
+      includeSuspended: true,
+    });
     if (!site) throw new TRPCError({ code: "NOT_FOUND", message: "Shop not found." });
 
     return {
@@ -53,7 +55,7 @@ export const websiteRouter = router({
     const [shop, services, staff] = await Promise.all([
       ctx.supabase
         .from("shops")
-        .select("id, site_template, site_content")
+        .select("id, site_template, site_content, premium_templates")
         .eq("id", ctx.shopId)
         .maybeSingle(),
       ctx.supabase
@@ -76,6 +78,9 @@ export const websiteRouter = router({
       active: isTemplateId(row.site_template) ? row.site_template : "classic",
       templates: TEMPLATE_IDS.map((id) => ({
         ...TEMPLATES[id],
+        // Premium templates can be edited and previewed by anyone, but only
+        // published by shops Lineup has given access.
+        locked: TEMPLATES[id].tier === "premium" && !row.premium_templates,
         design: resolveDesign(id, row.site_content),
       })),
       mediaBaseUrl: siteMediaBaseUrl(),
@@ -100,8 +105,22 @@ export const websiteRouter = router({
         });
       }
       const current = unwrap(
-        await ctx.supabase.from("shops").select("site_content").eq("id", ctx.shopId).single(),
+        await ctx.supabase
+          .from("shops")
+          .select("site_content, premium_templates")
+          .eq("id", ctx.shopId)
+          .single(),
       );
+      if (
+        input.activate &&
+        TEMPLATES[input.template].tier === "premium" &&
+        !current.premium_templates
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `${TEMPLATES[input.template].name} is a premium template. Your changes are saved; contact Lineup to publish it.`,
+        });
+      }
       unwrap(
         await ctx.supabase
           .from("shops")

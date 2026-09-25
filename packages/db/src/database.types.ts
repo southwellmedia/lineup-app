@@ -8,6 +8,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string;
+          admin_user_id: string;
+          created_at: string;
+          detail: Json;
+          id: number;
+          shop_id: string | null;
+        };
+        Insert: {
+          action: string;
+          admin_user_id: string;
+          created_at?: string;
+          detail?: Json;
+          id?: never;
+          shop_id?: string | null;
+        };
+        Update: {
+          action?: string;
+          admin_user_id?: string;
+          created_at?: string;
+          detail?: Json;
+          id?: never;
+          shop_id?: string | null;
+        };
+        Relationships: [];
+      };
       appointment_services: {
         Row: {
           appointment_id: string;
@@ -68,16 +95,16 @@ export type Database = {
       };
       appointments: {
         Row: {
-          client_confirmed_at: string | null;
           blocked_until: string;
-          checked_in_at: string | null;
-          completed_at: string | null;
           booked_by: Database["public"]["Enums"]["booking_actor"];
           cancellation_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at: string | null;
+          client_confirmed_at: string | null;
           client_id: string | null;
           client_note: string | null;
+          completed_at: string | null;
           created_at: string;
           deposit_cents: number;
           ends_at: string;
@@ -92,16 +119,16 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          client_confirmed_at?: string | null;
           blocked_until: string;
-          checked_in_at?: string | null;
-          completed_at?: string | null;
           booked_by: Database["public"]["Enums"]["booking_actor"];
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at?: string | null;
+          client_confirmed_at?: string | null;
           client_id?: string | null;
           client_note?: string | null;
+          completed_at?: string | null;
           created_at?: string;
           deposit_cents?: number;
           ends_at: string;
@@ -116,16 +143,16 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          client_confirmed_at?: string | null;
           blocked_until?: string;
-          checked_in_at?: string | null;
-          completed_at?: string | null;
           booked_by?: Database["public"]["Enums"]["booking_actor"];
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at?: string | null;
+          client_confirmed_at?: string | null;
           client_id?: string | null;
           client_note?: string | null;
+          completed_at?: string | null;
           created_at?: string;
           deposit_cents?: number;
           ends_at?: string;
@@ -140,6 +167,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "appointments_shop_id_client_id_fkey";
+            columns: ["shop_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_stats";
+            referencedColumns: ["shop_id", "client_id"];
+          },
           {
             foreignKeyName: "appointments_shop_id_client_id_fkey";
             columns: ["shop_id", "client_id"];
@@ -203,16 +237,59 @@ export type Database = {
           shop_id?: string;
           taken_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "client_photos_shop_id_appointment_id_fkey";
+            columns: ["shop_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointment_balances";
+            referencedColumns: ["shop_id", "appointment_id"];
+          },
+          {
+            foreignKeyName: "client_photos_shop_id_appointment_id_fkey";
+            columns: ["shop_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["shop_id", "id"];
+          },
+          {
+            foreignKeyName: "client_photos_shop_id_client_id_fkey";
+            columns: ["shop_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_stats";
+            referencedColumns: ["shop_id", "client_id"];
+          },
+          {
+            foreignKeyName: "client_photos_shop_id_client_id_fkey";
+            columns: ["shop_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["shop_id", "id"];
+          },
+          {
+            foreignKeyName: "client_photos_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_photos_shop_id_taken_by_fkey";
+            columns: ["shop_id", "taken_by"];
+            isOneToOne: false;
+            referencedRelation: "staff";
+            referencedColumns: ["shop_id", "id"];
+          },
+        ];
       };
       clients: {
         Row: {
-          instagram: string | null;
-          is_minor: boolean;
           created_at: string;
           email: string | null;
           email_consent_at: string | null;
           id: string;
+          instagram: string | null;
+          is_minor: boolean;
           marketing_consent_at: string | null;
           name: string;
           notes: string | null;
@@ -223,12 +300,12 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          instagram?: string | null;
-          is_minor?: boolean;
           created_at?: string;
           email?: string | null;
           email_consent_at?: string | null;
           id?: string;
+          instagram?: string | null;
+          is_minor?: boolean;
           marketing_consent_at?: string | null;
           name: string;
           notes?: string | null;
@@ -239,12 +316,12 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          instagram?: string | null;
-          is_minor?: boolean;
           created_at?: string;
           email?: string | null;
           email_consent_at?: string | null;
           id?: string;
+          instagram?: string | null;
+          is_minor?: boolean;
           marketing_consent_at?: string | null;
           name?: string;
           notes?: string | null;
@@ -314,7 +391,43 @@ export type Database = {
           shop_id?: string | null;
           status?: Database["public"]["Enums"]["message_status"];
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "messages_shop_id_appointment_id_fkey";
+            columns: ["shop_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointment_balances";
+            referencedColumns: ["shop_id", "appointment_id"];
+          },
+          {
+            foreignKeyName: "messages_shop_id_appointment_id_fkey";
+            columns: ["shop_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["shop_id", "id"];
+          },
+          {
+            foreignKeyName: "messages_shop_id_client_id_fkey";
+            columns: ["shop_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_stats";
+            referencedColumns: ["shop_id", "client_id"];
+          },
+          {
+            foreignKeyName: "messages_shop_id_client_id_fkey";
+            columns: ["shop_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["shop_id", "id"];
+          },
+          {
+            foreignKeyName: "messages_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       payment_accounts: {
         Row: {
@@ -464,6 +577,13 @@ export type Database = {
             foreignKeyName: "payments_shop_id_client_id_fkey";
             columns: ["shop_id", "client_id"];
             isOneToOne: false;
+            referencedRelation: "client_stats";
+            referencedColumns: ["shop_id", "client_id"];
+          },
+          {
+            foreignKeyName: "payments_shop_id_client_id_fkey";
+            columns: ["shop_id", "client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["shop_id", "id"];
           },
@@ -482,6 +602,24 @@ export type Database = {
             referencedColumns: ["shop_id", "id"];
           },
         ];
+      };
+      platform_admins: {
+        Row: {
+          created_at: string;
+          note: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          note?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          note?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       services: {
         Row: {
@@ -541,110 +679,119 @@ export type Database = {
       };
       shops: {
         Row: {
+          about: string | null;
+          address_line: string | null;
+          brand_color: string | null;
+          cancellation_window_minutes: number;
+          city: string | null;
+          created_at: string;
+          custom_domain: string | null;
+          email: string | null;
+          ga4_measurement_id: string | null;
+          google_site_verification: string | null;
+          id: string;
+          instagram: string | null;
+          late_cancel_fee_cents: number;
+          max_booking_advance_days: number;
+          meta_pixel_id: string | null;
+          min_booking_notice_minutes: number;
+          name: string;
+          neighborhood: string | null;
+          no_show_fee_cents: number;
+          phone: string | null;
+          plan: Database["public"]["Enums"]["shop_plan"];
+          postal_code: string | null;
+          premium_templates: boolean;
+          region: string | null;
+          share_clients_between_staff: boolean;
+          site_content: Json;
+          site_template: string;
+          slot_interval_minutes: number;
+          slug: string;
           sms_enabled: boolean;
           sms_reminder_24h: boolean;
           sms_reminder_2h: boolean;
-          site_content: Json;
-          site_template: string;
-          ga4_measurement_id: string | null;
-          google_site_verification: string | null;
-          meta_pixel_id: string | null;
-          about: string | null;
-          address_line: string | null;
-          city: string | null;
-          email: string | null;
-          instagram: string | null;
-          neighborhood: string | null;
-          phone: string | null;
-          postal_code: string | null;
-          region: string | null;
+          suspended_at: string | null;
+          suspended_reason: string | null;
           tagline: string | null;
-          brand_color: string | null;
-          cancellation_window_minutes: number;
-          created_at: string;
-          custom_domain: string | null;
-          id: string;
-          late_cancel_fee_cents: number;
-          max_booking_advance_days: number;
-          min_booking_notice_minutes: number;
-          name: string;
-          no_show_fee_cents: number;
-          plan: Database["public"]["Enums"]["shop_plan"];
-          share_clients_between_staff: boolean;
-          slot_interval_minutes: number;
-          slug: string;
           timezone: string;
           updated_at: string;
         };
         Insert: {
+          about?: string | null;
+          address_line?: string | null;
+          brand_color?: string | null;
+          cancellation_window_minutes?: number;
+          city?: string | null;
+          created_at?: string;
+          custom_domain?: string | null;
+          email?: string | null;
+          ga4_measurement_id?: string | null;
+          google_site_verification?: string | null;
+          id?: string;
+          instagram?: string | null;
+          late_cancel_fee_cents?: number;
+          max_booking_advance_days?: number;
+          meta_pixel_id?: string | null;
+          min_booking_notice_minutes?: number;
+          name: string;
+          neighborhood?: string | null;
+          no_show_fee_cents?: number;
+          phone?: string | null;
+          plan?: Database["public"]["Enums"]["shop_plan"];
+          postal_code?: string | null;
+          premium_templates?: boolean;
+          region?: string | null;
+          share_clients_between_staff?: boolean;
+          site_content?: Json;
+          site_template?: string;
+          slot_interval_minutes?: number;
+          slug: string;
           sms_enabled?: boolean;
           sms_reminder_24h?: boolean;
           sms_reminder_2h?: boolean;
-          site_content?: Json;
-          site_template?: string;
-          ga4_measurement_id?: string | null;
-          google_site_verification?: string | null;
-          meta_pixel_id?: string | null;
-          about?: string | null;
-          address_line?: string | null;
-          city?: string | null;
-          email?: string | null;
-          instagram?: string | null;
-          neighborhood?: string | null;
-          phone?: string | null;
-          postal_code?: string | null;
-          region?: string | null;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           tagline?: string | null;
-          brand_color?: string | null;
-          cancellation_window_minutes?: number;
-          created_at?: string;
-          custom_domain?: string | null;
-          id?: string;
-          late_cancel_fee_cents?: number;
-          max_booking_advance_days?: number;
-          min_booking_notice_minutes?: number;
-          name: string;
-          no_show_fee_cents?: number;
-          plan?: Database["public"]["Enums"]["shop_plan"];
-          share_clients_between_staff?: boolean;
-          slot_interval_minutes?: number;
-          slug: string;
           timezone?: string;
           updated_at?: string;
         };
         Update: {
+          about?: string | null;
+          address_line?: string | null;
+          brand_color?: string | null;
+          cancellation_window_minutes?: number;
+          city?: string | null;
+          created_at?: string;
+          custom_domain?: string | null;
+          email?: string | null;
+          ga4_measurement_id?: string | null;
+          google_site_verification?: string | null;
+          id?: string;
+          instagram?: string | null;
+          late_cancel_fee_cents?: number;
+          max_booking_advance_days?: number;
+          meta_pixel_id?: string | null;
+          min_booking_notice_minutes?: number;
+          name?: string;
+          neighborhood?: string | null;
+          no_show_fee_cents?: number;
+          phone?: string | null;
+          plan?: Database["public"]["Enums"]["shop_plan"];
+          postal_code?: string | null;
+          premium_templates?: boolean;
+          region?: string | null;
+          share_clients_between_staff?: boolean;
+          site_content?: Json;
+          site_template?: string;
+          slot_interval_minutes?: number;
+          slug?: string;
           sms_enabled?: boolean;
           sms_reminder_24h?: boolean;
           sms_reminder_2h?: boolean;
-          site_content?: Json;
-          site_template?: string;
-          ga4_measurement_id?: string | null;
-          google_site_verification?: string | null;
-          meta_pixel_id?: string | null;
-          about?: string | null;
-          address_line?: string | null;
-          city?: string | null;
-          email?: string | null;
-          instagram?: string | null;
-          neighborhood?: string | null;
-          phone?: string | null;
-          postal_code?: string | null;
-          region?: string | null;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           tagline?: string | null;
-          brand_color?: string | null;
-          cancellation_window_minutes?: number;
-          created_at?: string;
-          custom_domain?: string | null;
-          id?: string;
-          late_cancel_fee_cents?: number;
-          max_booking_advance_days?: number;
-          min_booking_notice_minutes?: number;
-          name?: string;
-          no_show_fee_cents?: number;
-          plan?: Database["public"]["Enums"]["shop_plan"];
-          share_clients_between_staff?: boolean;
-          slot_interval_minutes?: number;
-          slug?: string;
           timezone?: string;
           updated_at?: string;
         };
@@ -882,18 +1029,6 @@ export type Database = {
       };
     };
     Views: {
-      client_stats: {
-        Row: {
-          client_id: string | null;
-          last_visit_at: string | null;
-          next_visit_at: string | null;
-          no_shows: number | null;
-          shop_id: string | null;
-          spent_cents: number | null;
-          visits: number | null;
-        };
-        Relationships: [];
-      };
       appointment_balances: {
         Row: {
           appointment_id: string | null;
@@ -914,8 +1049,49 @@ export type Database = {
           },
         ];
       };
+      client_stats: {
+        Row: {
+          client_id: string | null;
+          last_visit_at: string | null;
+          next_visit_at: string | null;
+          no_shows: number | null;
+          shop_id: string | null;
+          spent_cents: number | null;
+          visits: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clients_shop_id_fkey";
+            columns: ["shop_id"];
+            isOneToOne: false;
+            referencedRelation: "shops";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
+      admin_booking_sources: {
+        Args: { p_since: string };
+        Returns: {
+          bookings: number;
+          source: Database["public"]["Enums"]["booking_source"];
+        }[];
+      };
+      admin_shop_stats: {
+        Args: { p_since: string };
+        Returns: {
+          booked_cents: number;
+          bookings: number;
+          clients: number;
+          last_booking_at: string;
+          shop_id: string;
+          site_views: number;
+          staff: number;
+          texts_failed: number;
+          texts_sent: number;
+        }[];
+      };
       cancel_appointment: {
         Args: {
           p_appointment_id: string;
@@ -928,8 +1104,11 @@ export type Database = {
           cancellation_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at: string | null;
+          client_confirmed_at: string | null;
           client_id: string | null;
           client_note: string | null;
+          completed_at: string | null;
           created_at: string;
           deposit_cents: number;
           ends_at: string;
@@ -959,8 +1138,11 @@ export type Database = {
           cancellation_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at: string | null;
+          client_confirmed_at: string | null;
           client_id: string | null;
           client_note: string | null;
+          completed_at: string | null;
           created_at: string;
           deposit_cents: number;
           ends_at: string;
@@ -999,8 +1181,11 @@ export type Database = {
           cancellation_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at: string | null;
+          client_confirmed_at: string | null;
           client_id: string | null;
           client_note: string | null;
+          completed_at: string | null;
           created_at: string;
           deposit_cents: number;
           ends_at: string;
@@ -1023,57 +1208,6 @@ export type Database = {
       };
       expire_stale_holds: { Args: never; Returns: number };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
-      set_working_hours: {
-        Args: { p_hours: Json; p_staff_id: string };
-        Returns: {
-          created_at: string;
-          end_time: string;
-          id: string;
-          shop_id: string;
-          staff_id: string;
-          start_time: string;
-          updated_at: string;
-          weekday: number;
-        }[];
-      };
-      site_analytics: {
-        Args: { p_from: string; p_shop_id: string; p_to: string };
-        Returns: Json;
-      };
-      reschedule_appointment: {
-        Args: {
-          p_appointment_id: string;
-          p_staff_id: string;
-          p_starts_at: string;
-        };
-        Returns: {
-          blocked_until: string;
-          booked_by: Database["public"]["Enums"]["booking_actor"];
-          cancellation_reason: string | null;
-          cancelled_at: string | null;
-          cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
-          client_id: string | null;
-          client_note: string | null;
-          created_at: string;
-          deposit_cents: number;
-          ends_at: string;
-          hold_expires_at: string | null;
-          id: string;
-          shop_id: string;
-          source: Database["public"]["Enums"]["booking_source"];
-          staff_id: string;
-          starts_at: string;
-          status: Database["public"]["Enums"]["appointment_status"];
-          total_price_cents: number;
-          updated_at: string;
-        };
-        SetofOptions: {
-          from: "*";
-          to: "appointments";
-          isOneToOne: true;
-          isSetofReturn: false;
-        };
-      };
       record_manual_payment: {
         Args: {
           p_amount_cents?: number;
@@ -1110,11 +1244,68 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      reschedule_appointment: {
+        Args: {
+          p_appointment_id: string;
+          p_staff_id: string;
+          p_starts_at: string;
+        };
+        Returns: {
+          blocked_until: string;
+          booked_by: Database["public"]["Enums"]["booking_actor"];
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: Database["public"]["Enums"]["cancellation_party"] | null;
+          checked_in_at: string | null;
+          client_confirmed_at: string | null;
+          client_id: string | null;
+          client_note: string | null;
+          completed_at: string | null;
+          created_at: string;
+          deposit_cents: number;
+          ends_at: string;
+          hold_expires_at: string | null;
+          id: string;
+          shop_id: string;
+          source: Database["public"]["Enums"]["booking_source"];
+          staff_id: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["appointment_status"];
+          total_price_cents: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "appointments";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_working_hours: {
+        Args: { p_hours: Json; p_staff_id: string };
+        Returns: {
+          created_at: string;
+          end_time: string;
+          id: string;
+          shop_id: string;
+          staff_id: string;
+          start_time: string;
+          updated_at: string;
+          weekday: number;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "working_hours";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      site_analytics: {
+        Args: { p_from: string; p_shop_id: string; p_to: string };
+        Returns: Json;
+      };
     };
     Enums: {
-      message_kind: "confirmation" | "reminder_24h" | "reminder_2h" | "reply" | "inbound";
-      message_status: "queued" | "sent" | "failed" | "skipped" | "received";
-      photo_consent: "private" | "portfolio" | "social";
       appointment_status:
         "held" | "confirmed" | "checked_in" | "completed" | "cancelled" | "no_show" | "expired";
       booking_actor: "client" | "staff" | "chat_agent" | "voice_agent" | "import";
@@ -1129,9 +1320,12 @@ export type Database = {
         | "import"
         | "other";
       cancellation_party: "client" | "shop";
+      message_kind: "confirmation" | "reminder_24h" | "reminder_2h" | "reply" | "inbound";
+      message_status: "queued" | "sent" | "failed" | "skipped" | "received";
       payment_kind: "deposit" | "service" | "no_show_fee" | "late_cancel_fee" | "refund";
       payment_method: "cash" | "external" | "card";
       payment_provider: "stripe";
+      photo_consent: "private" | "portfolio" | "social";
       shop_plan: "solo" | "shop";
       staff_role: "owner" | "manager" | "barber";
     };
@@ -1255,9 +1449,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      message_kind: ["confirmation", "reminder_24h", "reminder_2h", "reply", "inbound"],
-      message_status: ["queued", "sent", "failed", "skipped", "received"],
-      photo_consent: ["private", "portfolio", "social"],
       appointment_status: [
         "held",
         "confirmed",
@@ -1280,9 +1471,12 @@ export const Constants = {
         "other",
       ],
       cancellation_party: ["client", "shop"],
+      message_kind: ["confirmation", "reminder_24h", "reminder_2h", "reply", "inbound"],
+      message_status: ["queued", "sent", "failed", "skipped", "received"],
       payment_kind: ["deposit", "service", "no_show_fee", "late_cancel_fee", "refund"],
       payment_method: ["cash", "external", "card"],
       payment_provider: ["stripe"],
+      photo_consent: ["private", "portfolio", "social"],
       shop_plan: ["solo", "shop"],
       staff_role: ["owner", "manager", "barber"],
     },

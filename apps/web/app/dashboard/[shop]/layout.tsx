@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { ShopProvider } from "@/components/shop-context";
+import { isPlatformAdmin } from "@/lib/admin/platform";
 import { createUserClient } from "@/lib/supabase/server";
 import { serverCaller } from "@/trpc/server";
 import { Shell } from "./shell";
@@ -18,6 +19,7 @@ export default async function ShopLayout({ children, params }: Props) {
   if (!shop || !shop.staffId) notFound();
 
   const email = typeof claims.data?.claims.email === "string" ? claims.data.claims.email : "";
+  const admin = await isPlatformAdmin(claims.data?.claims.sub ?? null);
 
   return (
     <ShopProvider
@@ -31,7 +33,7 @@ export default async function ShopLayout({ children, params }: Props) {
         isManager: shop.role === "owner" || shop.role === "manager",
       }}
     >
-      <Shell email={email} shops={shops.map((s) => ({ slug: s.slug, name: s.name }))}>
+      <Shell email={email} admin={admin} shops={shops.map((s) => ({ slug: s.slug, name: s.name }))}>
         {children}
       </Shell>
     </ShopProvider>

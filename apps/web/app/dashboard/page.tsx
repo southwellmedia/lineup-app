@@ -1,5 +1,7 @@
 import type { Route } from "next";
 import { redirect } from "next/navigation";
+import { isPlatformAdmin } from "@/lib/admin/platform";
+import { createUserClient } from "@/lib/supabase/server";
 import { serverCaller } from "@/trpc/server";
 
 /** Sends staff to their first shop; explains what to do if they have none. */
@@ -7,6 +9,8 @@ export default async function DashboardIndex() {
   const shops = await (await serverCaller()).me.shops();
   const first = shops[0];
   if (first) redirect(`/dashboard/${first.slug}` as Route);
+  const { data } = await (await createUserClient()).auth.getClaims();
+  if (await isPlatformAdmin(data?.claims.sub ?? null)) redirect("/admin");
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6">

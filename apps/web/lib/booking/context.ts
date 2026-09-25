@@ -12,9 +12,15 @@ type Db = SupabaseClient<Database>;
 export const PUBLIC_SHOP_COLUMNS =
   "id, name, slug, timezone, plan, brand_color, min_booking_notice_minutes, max_booking_advance_days, slot_interval_minutes, cancellation_window_minutes, late_cancel_fee_cents, no_show_fee_cents, site_template" as const;
 
+/** A shop taking online bookings. Suspended shops read as not found. */
 export async function getShopBySlug(db: Db, slug: string) {
   const shop = unwrap(
-    await db.from("shops").select(PUBLIC_SHOP_COLUMNS).eq("slug", slug).maybeSingle(),
+    await db
+      .from("shops")
+      .select(PUBLIC_SHOP_COLUMNS)
+      .eq("slug", slug)
+      .is("suspended_at", null)
+      .maybeSingle(),
   );
   if (!shop) throw new TRPCError({ code: "NOT_FOUND", message: "We couldn't find that shop." });
   return shop;

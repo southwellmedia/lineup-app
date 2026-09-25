@@ -2,6 +2,8 @@ import "server-only";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { z } from "zod";
+import { isPlatformAdmin } from "@/lib/admin/platform";
+import { adminClient } from "@/lib/supabase/admin";
 import { createUserClient } from "@/lib/supabase/server";
 
 export async function createContext() {
@@ -62,4 +64,15 @@ export const managerProcedure = shopProcedure.use(({ ctx, next }) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only owners and managers can do that." });
   }
   return next();
+});
+
+/**
+ * Lineup staff only (the super admin panel). ctx.db bypasses RLS, so every
+ * admin procedure works across shops; changes must be recorded with audit().
+ */
+export const adminProcedure = authedProcedure.use(async ({ ctx, next }) => {
+  if (!(await isPlatformAdmin(ctx.userId))) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Lineup admins only." });
+  }
+  return next({ ctx: { ...ctx, db: adminClient() } });
 });

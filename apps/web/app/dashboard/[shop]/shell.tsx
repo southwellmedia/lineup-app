@@ -47,6 +47,8 @@ const ICONS = {
 
 export function Shell(props: {
   email: string;
+  /** Runs Lineup itself: show the way to the admin panel. */
+  admin: boolean;
   shops: { slug: string; name: string }[];
   children: ReactNode;
 }) {
@@ -97,7 +99,14 @@ export function Shell(props: {
         </nav>
         <div className="border-t border-paper/15 p-4 text-sm">
           <p className="truncate text-paper/60">{props.email}</p>
-          <SignOut className="mt-2 text-paper/80 hover:text-paper" />
+          <div className="mt-2 flex items-center gap-4">
+            <SignOut className="text-paper/80 hover:text-paper" />
+            {props.admin ? (
+              <Link href="/admin" className="font-medium text-paper/80 hover:text-paper">
+                Lineup admin
+              </Link>
+            ) : null}
+          </div>
         </div>
       </aside>
 
@@ -110,7 +119,17 @@ export function Shell(props: {
           />
           <ShopSwitcher shops={props.shops} compact />
         </div>
-        <SignOut className="shrink-0 rounded-full border border-paper/30 px-3 py-1 text-sm hover:bg-paper hover:text-ink" />
+        <div className="flex shrink-0 items-center gap-2">
+          {props.admin ? (
+            <Link
+              href="/admin"
+              className="rounded-full border border-paper/30 px-3 py-1 text-sm hover:bg-paper hover:text-ink"
+            >
+              Admin
+            </Link>
+          ) : null}
+          <SignOut className="shrink-0 rounded-full border border-paper/30 px-3 py-1 text-sm hover:bg-paper hover:text-ink" />
+        </div>
       </header>
 
       <main className="min-w-0 px-4 pb-28 pt-6 sm:px-6 md:px-10 md:pb-16 md:pt-10">

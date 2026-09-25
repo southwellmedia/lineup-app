@@ -148,7 +148,19 @@ export function DesignEditor({ siteUrl }: { siteUrl: string | null }) {
                   <span className="size-2 rounded-full bg-brand" /> Unsaved changes
                 </span>
               ) : null}
-              {isLive ? (
+              {info.locked ? (
+                <>
+                  <span className="text-sm text-muted">
+                    Premium: ask Lineup to unlock publishing
+                  </span>
+                  <Button
+                    disabled={!dirty || save.isPending || uploading > 0}
+                    onClick={() => submit(false)}
+                  >
+                    Save
+                  </Button>
+                </>
+              ) : isLive ? (
                 <Button
                   variant="primary"
                   disabled={!dirty || save.isPending || uploading > 0}

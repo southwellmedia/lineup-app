@@ -1,4 +1,5 @@
 import { createCallerFactory, router } from "./init";
+import { adminRouter } from "./routers/admin";
 import { appointmentsRouter } from "./routers/appointments";
 import { bookingRouter } from "./routers/booking";
 import { calendarRouter } from "./routers/calendar";
@@ -23,6 +24,7 @@ export const appRouter = router({
   website: websiteRouter,
   calendar: calendarRouter,
   photos: photosRouter,
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;

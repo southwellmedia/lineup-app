@@ -45,6 +45,8 @@ describe("tenant isolation", () => {
       "site_events",
       "client_photos",
       "messages",
+      "platform_admins",
+      "admin_audit_log",
     ]) {
       const { rowCount } = await db.asAnon((c) => c.query(`SELECT 1 FROM ${table}`));
       expect(rowCount, table).toBe(0);

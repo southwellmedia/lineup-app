@@ -28,6 +28,7 @@ apps/web/                # Next.js: booking pages + the tRPC booking API
   app/book/[shopSlug]/   # public booking flow
   app/dashboard/[shop]/  # admin (sign-in required): Today, Calendar, Clients, Services, Team, Website, Settings
   components/ui.tsx      # shared admin primitives (Button, Field, Input, Switch, Card…)
+  app/admin/             # Lineup's super admin panel (platform_admins only)
   app/login, app/auth/   # magic-link sign-in, callback, sign-out
   lib/booking/           # server-side booking context + pure helpers (tested)
   app/api/public/sites/  # public site data (by slug, or ?domain=) for apps/sites
@@ -178,6 +179,22 @@ supabase/seed.sql        # local demo shop
 - Adding a template: add its id to `TEMPLATE_IDS`/`TEMPLATES`, the
   `site_template` CHECK constraint (new migration), and a
   `templates/<id>/Home.astro` wired into the `[shop]` pages.
+
+## Super admin (Lineup staff)
+
+- `/admin` (Overview, Shops, shop detail, Audit log) is for people in
+  `platform_admins`; everyone else gets a 404. Add an admin with SQL:
+  `insert into platform_admins (user_id) select id from auth.users where email = '…'`.
+- `adminProcedure` (in `trpc/init.ts`) checks `isPlatformAdmin()` and gives
+  `ctx.db`, the RLS-bypassing admin client. Every admin write must call
+  `audit()` (`lib/admin/platform.ts`); `admin_audit_log` is append-only.
+- Lineup controls `shops.plan`, `premium_templates`, `suspended_at` and
+  `suspended_reason`; a trigger stops shop staff changing them.
+- Suspension hides the shop publicly (`getShopBySlug`, `loadSiteData`) and
+  stops texts; the team can still sign in. Premium templates can be edited
+  and previewed by anyone but only published with `premium_templates`.
+- Stats come from `admin_shop_stats()` / `admin_booking_sources()`
+  (service role only).
 
 ## Text messages
 

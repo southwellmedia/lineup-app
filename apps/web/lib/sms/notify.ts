@@ -24,7 +24,7 @@ export async function bookingFacts(db: Db, appointmentId: string) {
     db
       .from("shops")
       .select(
-        "name, slug, timezone, phone, address_line, city, sms_enabled, sms_reminder_24h, sms_reminder_2h, cancellation_window_minutes",
+        "name, slug, timezone, phone, address_line, city, sms_enabled, sms_reminder_24h, sms_reminder_2h, cancellation_window_minutes, suspended_at",
       )
       .eq("id", a.shop_id)
       .single(),
@@ -65,6 +65,7 @@ export async function textBooking(appointmentId: string, kind: Kind): Promise<Te
 
     if (appointment.status !== "confirmed")
       return { status: "not_needed", reason: "Not a live booking." };
+    if (shop.suspended_at) return { status: "not_needed", reason: "The shop is suspended." };
     if (!shop.sms_enabled) return { status: "not_needed", reason: "Texts are off for this shop." };
     if (kind === "reminder_24h" && !shop.sms_reminder_24h)
       return { status: "not_needed", reason: "24h reminders are off." };
