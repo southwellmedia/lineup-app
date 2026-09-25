@@ -19,6 +19,14 @@ const frames = services.map((s, i) => ({
   photo: ctx.media(props.photos[s.id] ?? fallbacks[i % Math.max(1, fallbacks.length)]),
 }));
 const firstMain = services.find((s) => !s.isAddon)?.id;
+// Cuts first (one per visit), then add-ons (any number, with a cut), each
+// under its own label so two circles never look like a mistake.
+const numbered = frames.map((s, i) => ({ s, i }));
+const addons = numbered.filter(({ s }) => s.isAddon);
+const groups = [
+  { key: "cuts", label: "Cuts · pick one", items: numbered.filter(({ s }) => !s.isAddon) },
+  { key: "addons", label: "Add-ons · optional, with a cut", items: addons },
+].filter((g) => g.items.length);
 const [titleA, titleB] = splitLast(props.title || "The Sheet");
 const code = initials(site.shop.name);
 ---
@@ -34,30 +42,37 @@ const code = initials(site.shop.name);
   <div class="layout" data-sheet data-book-base={ctx.book()}>
     <div class="contact on-paper">
       <div class="mono sheet-meta"><span>Sheet 01 — Services</span><span class="hide-sm">Circle your selects</span><span>{code}-400</span></div>
-      <div class="grid" role="group" aria-label="Services">
-        {
-          frames.map((s, i) => (
-            <button
-              type="button"
-              class="frame-btn"
-              aria-pressed={s.id === firstMain ? "true" : "false"}
-              data-service={s.id}
-              data-addon={s.isAddon ? "1" : "0"}
-              data-name={s.name}
-              data-price={Math.round(s.priceFromCents / 100)}
-              data-min={s.durationMinutes}
-            >
-              <div class="shot develop">
-                {s.photo ? <img src={s.photo} alt="" loading="lazy" /> : <div class="shot-blank" aria-hidden="true">{s.name.slice(0, 1)}</div>}
-              </div>
-              <span class="mono small"><span>{String(i + 1).padStart(2, "0")}{s.isAddon ? " · Add-on" : ""}</span><span>{s.durationMinutes} min</span></span>
-              <span class="label"><span class="display name">{s.name}</span><span class="italic price">{s.isAddon ? "+" : ""}{price(s.priceFromCents, s.priceToCents)}</span></span>
-              {s.description ? <span class="blurb">{s.description}</span> : null}
-              <svg class="circle" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M150 8 C250 4 294 64 292 150 C290 236 232 294 146 292 C56 290 8 232 8 148 C8 64 70 10 160 12 C200 13 232 22 254 36" /></svg>
-            </button>
-          ))
-        }
-      </div>
+      {
+        groups.map((group) => (
+          <div class="group">
+            {addons.length ? <p class="mono group-label" id={`sheet-${group.key}`}>{group.label}</p> : null}
+            <div class="grid" role="group" aria-labelledby={addons.length ? `sheet-${group.key}` : undefined} aria-label={addons.length ? undefined : "Services"}>
+              {
+                group.items.map(({ s, i }) => (
+                <button
+                  type="button"
+                  class="frame-btn"
+                  aria-pressed={s.id === firstMain ? "true" : "false"}
+                  data-service={s.id}
+                  data-addon={s.isAddon ? "1" : "0"}
+                  data-name={s.name}
+                  data-price={Math.round(s.priceFromCents / 100)}
+                  data-min={s.durationMinutes}
+                >
+                  <div class="shot develop">
+                    {s.photo ? <img src={s.photo} alt="" loading="lazy" /> : <div class="shot-blank" aria-hidden="true">{s.name.slice(0, 1)}</div>}
+                  </div>
+                  <span class="mono small"><span>{String(i + 1).padStart(2, "0")}{s.isAddon ? " · Add-on" : ""}</span><span>{s.durationMinutes} min</span></span>
+                  <span class="label"><span class="display name">{s.name}</span><span class="italic price">{s.isAddon ? "+" : ""}{price(s.priceFromCents, s.priceToCents)}</span></span>
+                  {s.description ? <span class="blurb">{s.description}</span> : null}
+                  <svg class="circle" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M150 8 C250 4 294 64 292 150 C290 236 232 294 146 292 C56 290 8 232 8 148 C8 64 70 10 160 12 C200 13 232 22 254 36" /></svg>
+                </button>
+                ))
+              }
+            </div>
+          </div>
+        ))
+      }
     </div>
 
     <aside class="envelope on-paper" aria-live="polite">
@@ -88,6 +103,8 @@ const code = initials(site.shop.name);
   .contact { background: var(--paper); color: var(--ink); padding: 28px 28px 30px; transform: rotate(-.4deg); box-shadow: 0 30px 70px rgba(0,0,0,.55); display: flex; flex-direction: column; gap: 20px; }
   .sheet-meta { display: flex; justify-content: space-between; color: var(--ink-mute); }
   .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px 18px; }
+  .group + .group { margin-top: 14px; padding-top: 18px; border-top: 1px dashed var(--ink-mute); }
+  .group-label { margin: 0 0 14px; font-size: 11px; color: var(--ink-mute); letter-spacing: .14em; }
   .frame-btn { position: relative; display: flex; flex-direction: column; gap: 9px; text-align: left; border: 0; padding: 0; background: none; color: var(--ink); cursor: pointer; }
   .shot { aspect-ratio: 5 / 4; overflow: hidden; background: var(--ink); }
   .shot img { width: 100%; height: 100%; object-fit: cover; transition: filter 1.8s var(--ease), transform .6s var(--ease) !important; }

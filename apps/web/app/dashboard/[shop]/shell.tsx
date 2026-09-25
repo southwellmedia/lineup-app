@@ -227,7 +227,7 @@ export function Shell(props: {
               <span className="flex shrink-0 gap-3">
                 {props.admin ? (
                   <Link href="/admin" className="font-semibold">
-                    Admin
+                    Super Admin
                   </Link>
                 ) : null}
                 <SignOut className="font-semibold" />
@@ -344,7 +344,7 @@ function Account({ email, admin }: { email: string; admin: boolean }) {
         {admin ? (
           <Link href="/admin" className={button}>
             <ShieldCheck className="size-3.5" aria-hidden />
-            Lineup admin
+            Super Admin
           </Link>
         ) : null}
         <SignOut className={button} icon />
