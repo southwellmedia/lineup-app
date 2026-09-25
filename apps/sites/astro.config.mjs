@@ -24,6 +24,12 @@ export default defineConfig({
       SITES_ROOT_DOMAIN: envField.string({ context: "server", access: "secret", optional: true }),
       /** Vercel protection bypass for calling a protected preview of the web app. Optional. */
       LINEUP_API_BYPASS: envField.string({ context: "server", access: "secret", optional: true }),
+      /** Shared with the database (Vault: sites_revalidate_secret) for cache purges. */
+      SITES_REVALIDATE_SECRET: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+      }),
     },
   },
   vite: {

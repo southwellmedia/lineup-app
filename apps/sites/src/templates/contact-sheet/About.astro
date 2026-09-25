@@ -21,14 +21,12 @@ const photo = ctx.media(props.image);
       </div>
       {
         photo ? (
-          <figure class="print develop" style="--tilt:-2.5deg" data-loupe-print data-parallax="0.05">
-            <div class="frame" data-loupe-frame style="aspect-ratio: 442 / 600">
-              <img src={photo} alt={props.image?.alt || site.shop.name} loading="lazy" style="object-position:50% 32%" data-loupe-img />
-              <div class="loupe" data-loupe aria-hidden="true" style={`background-image:url(${photo})`} />
+          <figure class="print develop" style="--tilt:-2.5deg" data-parallax="0.05">
+            <div class="frame" style="aspect-ratio: 442 / 600">
+              <img src={photo} alt={props.image?.alt || site.shop.name} loading="lazy" style="object-position:50% 32%" />
             </div>
             <figcaption>
               <span>{props.image?.alt || site.shop.name}</span>
-              <span class="mono hint" style="font-style:normal;font-size:10px">Move to magnify</span>
             </figcaption>
           </figure>
         ) : null
@@ -45,19 +43,9 @@ const photo = ctx.media(props.image);
   .statement em { font-style: italic; }
   .body { margin: 0; font-size: 20px; line-height: 1.6; color: var(--soft); max-width: 58ch; }
   .creds { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; border-top: 1px solid var(--paper); padding-top: 14px; color: var(--soft); }
-  .frame { position: relative; cursor: crosshair; }
-  .loupe {
-    position: absolute; width: 190px; height: 190px; border-radius: 50%;
-    left: var(--lx, 58%); top: var(--ly, 40%); transform: translate(-50%, -50%);
-    border: 9px solid var(--film); box-shadow: 0 0 0 2px var(--paper), 0 26px 46px rgba(0,0,0,.7);
-    background-color: var(--ink); background-repeat: no-repeat;
-    pointer-events: none; transition: left .5s var(--ease), top .5s var(--ease);
-  }
-  .loupe:global(.tracking) { transition: none; }
-  @media (hover: none) { .hint { display: none; } }
+  .frame { position: relative; }
   @media (max-width: 900px) {
     .about { grid-template-columns: 1fr; row-gap: 56px; }
     .print { width: min(86%, 440px); justify-self: center; }
-    .loupe { width: 140px; height: 140px; }
   }
 </style>

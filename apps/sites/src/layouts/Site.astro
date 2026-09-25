@@ -3,6 +3,7 @@ import { brandStyle, formatPhone, jsonLdScript } from "@lineup/site-kit";
 import Beacon from "../components/Beacon.astro";
 import Tracking from "../components/Tracking.astro";
 import type { PageContext } from "../lib/page";
+import { enabledSection } from "../lib/shop-view";
 import "../styles/global.css";
 
 interface Props {
@@ -19,11 +20,12 @@ const style = Object.entries(brandStyle(site.shop.brandColor))
   .map(([k, v]) => `${k}:${v}`)
   .join(";");
 const canonical = ctx.canonical(path);
+// Only link to sections the shop has switched on.
 const nav = [
-  { href: `${base}/#menu`, label: "Menu" },
-  { href: `${base}/#barbers`, label: "Barbers" },
-  { href: `${base}/#visit`, label: "Visit" },
-];
+  enabledSection(site, "services") ? { href: `${base}/#menu`, label: "Menu" } : null,
+  enabledSection(site, "team") ? { href: `${base}/#barbers`, label: "Barbers" } : null,
+  enabledSection(site, "visit") ? { href: `${base}/#visit`, label: "Visit" } : null,
+].filter((item) => item !== null);
 ---
 
 <!doctype html>

@@ -72,48 +72,6 @@ if (!reduced && drifters.length && window.matchMedia("(min-width: 901px)").match
   update();
 }
 
-/* Loupe: magnifies the About portrait under the pointer; rests on the upper third. */
-const frame = $("[data-loupe-frame]");
-const loupe = $("[data-loupe]");
-const loupeImg = $<HTMLImageElement>("[data-loupe-img]");
-if (frame && loupe && loupeImg) {
-  const ZOOM = 2.3;
-  const place = (fx: number, fy: number) => {
-    const fw = frame.clientWidth;
-    const fh = frame.clientHeight;
-    const nw = loupeImg.naturalWidth || fw;
-    const nh = loupeImg.naturalHeight || fh;
-    const s = Math.max(fw / nw, fh / nh);
-    const rw = nw * s;
-    const rh = nh * s;
-    const ox = (fw - rw) * 0.5;
-    const oy = (fh - rh) * 0.32;
-    const size = loupe.offsetWidth;
-    loupe.style.setProperty("--lx", `${fx}px`);
-    loupe.style.setProperty("--ly", `${fy}px`);
-    loupe.style.backgroundSize = `${rw * ZOOM}px ${rh * ZOOM}px`;
-    loupe.style.backgroundPosition = `${-((fx - ox) * ZOOM - size / 2)}px ${-((fy - oy) * ZOOM - size / 2)}px`;
-  };
-  const rest = () => place(frame.clientWidth * 0.55, frame.clientHeight * 0.35);
-  if (loupeImg.complete) rest();
-  else loupeImg.addEventListener("load", rest);
-  window.addEventListener("resize", rest);
-  if (window.matchMedia("(hover: hover)").matches) {
-    frame.addEventListener("pointermove", (e) => {
-      const r = frame.getBoundingClientRect();
-      loupe.classList.add("tracking");
-      place(
-        Math.max(0, Math.min(r.width, e.clientX - r.left)),
-        Math.max(0, Math.min(r.height, e.clientY - r.top)),
-      );
-    });
-    frame.addEventListener("pointerleave", () => {
-      loupe.classList.remove("tracking");
-      rest();
-    });
-  }
-}
-
 /* The service sheet: circle one cut plus any add-ons, then book them together. */
 const sheet = $("[data-sheet]");
 if (sheet) {

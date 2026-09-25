@@ -4,7 +4,7 @@ import Site from "../../../layouts/Site.astro";
 import CsDetail from "../../../templates/contact-sheet/Detail.astro";
 import CsLayout from "../../../templates/contact-sheet/Layout.astro";
 import { enabledSection } from "../../../lib/shop-view";
-import { pageCache, pageContext, placeName } from "../../../lib/page";
+import { pageContext, setPageCache, placeName } from "../../../lib/page";
 
 const ctx = await pageContext(Astro.params.shop, Astro.url, Astro.locals.hostMode);
 const barber = ctx?.site.barbers.find((b) => b.slug === Astro.params.barber);
@@ -25,7 +25,7 @@ const jsonLd = {
   worksFor: { "@id": `${ctx.canonical("/")}#business` },
 };
 
-Astro.response.headers.set("cache-control", pageCache(ctx));
+setPageCache(Astro.response.headers, ctx);
 ---
 
 {

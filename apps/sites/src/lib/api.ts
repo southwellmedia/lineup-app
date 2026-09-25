@@ -1,28 +1,19 @@
 import type { SiteData } from "@lineup/site-kit";
 import { LINEUP_API_BYPASS, LINEUP_API_URL } from "astro:env/server";
 
-type Entry = { site: SiteData | null; expires: number };
-
-/** Small per-instance cache; the API is also edge-cached, this just saves a hop. */
-const cache = new Map<string, Entry>();
-const TTL_MS = 30_000;
-
-async function fetchSite(path: string, preview = false): Promise<SiteData | null> {
-  const hit = preview ? undefined : cache.get(path);
-  if (hit && hit.expires > Date.now()) return hit.site;
-
+/**
+ * Fetches a shop's site data. No caching here: rendered pages are cached at
+ * the CDN and purged by tag when the shop changes, so a local copy could
+ * only ever serve something stale.
+ */
+async function fetchSite(path: string): Promise<SiteData | null> {
   const response = await fetch(new URL(path, LINEUP_API_URL), {
     headers: LINEUP_API_BYPASS ? { "x-vercel-protection-bypass": LINEUP_API_BYPASS } : {},
-    cache: preview ? "no-store" : "default",
+    cache: "no-store",
   });
-  if (response.status === 404) {
-    cache.set(path, { site: null, expires: Date.now() + TTL_MS });
-    return null;
-  }
+  if (response.status === 404) return null;
   if (!response.ok) throw new Error(`Site API ${response.status} for ${path}`);
-  const site = (await response.json()) as SiteData;
-  if (!preview) cache.set(path, { site, expires: Date.now() + TTL_MS });
-  return site;
+  return (await response.json()) as SiteData;
 }
 
 /**
@@ -39,7 +30,7 @@ export function siteBySlug(
   if (preview.template && /^[a-z-]{1,40}$/.test(preview.template)) {
     query.set("template", preview.template);
   }
-  return fetchSite(`/api/public/sites/${slug}?${query}`, true);
+  return fetchSite(`/api/public/sites/${slug}?${query}`);
 }
 
 export function siteByDomain(domain: string): Promise<SiteData | null> {

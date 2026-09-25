@@ -1,5 +1,5 @@
 ---
-import { placeName, pageCache, pageContext } from "../../lib/page";
+import { placeName, pageContext, setPageCache } from "../../lib/page";
 import ClassicHome from "../../templates/classic/Home.astro";
 import ContactSheetHome from "../../templates/contact-sheet/Home.astro";
 
@@ -16,7 +16,7 @@ const description =
   }.`;
 
 // Cache at the edge briefly; menus and hours change rarely. Previews never.
-Astro.response.headers.set("cache-control", pageCache(ctx));
+setPageCache(Astro.response.headers, ctx);
 ---
 
 {

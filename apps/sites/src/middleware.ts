@@ -4,7 +4,7 @@ import { siteByDomain } from "./lib/api";
 import { resolveTenant } from "./lib/tenant";
 
 /** Paths that are never shop pages. */
-const PASSTHROUGH = /^\/(_astro|_image|favicon|robots\.txt)/;
+const PASSTHROUGH = /^\/(_astro|_image|favicon|robots\.txt|api\/revalidate)/;
 
 /**
  * Maps subdomains and custom domains onto the path-based routes, so

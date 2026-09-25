@@ -178,7 +178,16 @@ supabase/seed.sql        # local demo shop
   `SiteData.tracking` and are strictly format-checked in the API and the
   database, because they're written into the site's HTML.
 - Book links go through `bookingLink()` so attribution (`src=website`) is
-  always set. Pages cache for 60s at the edge.
+  always set.
+- Caching: shop pages are SSR and cached at Vercel's CDN for a day
+  (`setPageCache` in `apps/sites/src/lib/page.ts`), tagged `shop-<id>`.
+  Database triggers on shops, services, staff, staff_services and
+  working_hours call the sites app's `POST /api/revalidate` through pg_net
+  (Vault: `sites_revalidate_url`, `sites_revalidate_secret`; env
+  `SITES_REVALIDATE_SECRET` on lineup-sites), which deletes that tag, so any
+  edit shows on the next visit with no rebuild. The web app's site API is
+  `no-store`; don't add another cache in front of it. A new table that
+  feeds SiteData needs the same trigger.
 
 ## Website templates and the design editor
 

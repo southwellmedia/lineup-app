@@ -2,15 +2,13 @@ import "server-only";
 import type { SiteData } from "@lineup/site-kit";
 import { NextResponse } from "next/server";
 
-export function siteResponse(site: SiteData | null, options: { preview?: boolean } = {}) {
+/**
+ * Site data is never cached here. The shop sites cache their rendered pages
+ * at the CDN, tagged by shop, and the database purges that tag on every
+ * change; a second cache in front of this API would only serve stale data
+ * to those fresh renders.
+ */
+export function siteResponse(site: SiteData | null) {
   if (!site) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  return NextResponse.json(site, {
-    headers: {
-      // Shops change menus rarely; a minute of edge caching keeps sites fast.
-      // Previews must show edits immediately.
-      "cache-control": options.preview
-        ? "no-store"
-        : "public, s-maxage=60, stale-while-revalidate=600",
-    },
-  });
+  return NextResponse.json(site, { headers: { "cache-control": "no-store" } });
 }

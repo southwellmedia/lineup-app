@@ -22,6 +22,7 @@ const lede = props.lede || site.shop.tagline || site.shop.about;
 
 const reviews = enabledSection(site, "reviews");
 const signature = enabledSection(site, "signature");
+const servicesShown = enabledSection(site, "services") !== null;
 const featured = signature?.props.serviceId
   ? site.services.find((s) => s.id === signature.props.serviceId)
   : undefined;
@@ -48,9 +49,9 @@ const photo = ctx.media(props.image);
                 <a href={`${base}/#signature`} class="btn">
                   {featured.name} · {price(featured.priceFromCents, featured.priceToCents)}
                 </a>
-              ) : (
+              ) : servicesShown ? (
                 <a href={`${base}/#sheet`} class="btn">See services</a>
-              )
+              ) : null
             }
           </div>
         </div>

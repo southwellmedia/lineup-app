@@ -17,5 +17,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const site = await loadSiteData(adminClient(), { slug }, request.nextUrl.origin, {
     template: preview && isTemplateId(template) ? template : undefined,
   });
-  return siteResponse(site, { preview });
+  return siteResponse(site);
 }

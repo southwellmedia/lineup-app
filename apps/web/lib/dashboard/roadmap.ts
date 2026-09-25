@@ -75,6 +75,22 @@ export const PLANNED: Record<string, PlannedFeature> = {
     today: "Website visits and bookings by source are on the Website page.",
     managersOnly: true,
   },
+  social: {
+    id: "social",
+    label: "Social",
+    title: "Social",
+    pitch: "Post your best cuts to Instagram and Facebook without leaving Lineup.",
+    points: [
+      "Connect Instagram and Facebook once (Meta business login)",
+      "Turn a client photo from an appointment into a post, with the caption drafted",
+      "Tag the client only when they've said yes",
+      "Schedule posts for the times your followers are around",
+      "See which posts bring bookings, not just likes",
+    ],
+    today:
+      "Client photos (with consent) and one-tap sharing are on every appointment and client profile. Your Instagram handle and Meta Pixel are in Settings.",
+    managersOnly: true,
+  },
   "ai-agents": {
     id: "ai-agents",
     label: "AI agents",

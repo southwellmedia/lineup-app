@@ -55,7 +55,21 @@ export function placeName(site: SiteData): string | null {
   return site.shop.neighborhood;
 }
 
-/** Edge caching for shop pages; previews must always be fresh. */
-export function pageCache(ctx: PageContext): string {
-  return ctx.preview ? "no-store" : "public, s-maxage=60, stale-while-revalidate=600";
+/**
+ * Caching for shop pages. Vercel's CDN keeps them for a day, tagged with the
+ * shop, and the database purges that tag the moment anything on the site
+ * changes (see /api/revalidate), so visitors get cached speed and owners see
+ * edits right away. Browsers always revalidate. Previews are never cached.
+ */
+export function setPageCache(headers: Headers, ctx: PageContext): void {
+  if (ctx.preview) {
+    headers.set("cache-control", "no-store");
+    return;
+  }
+  headers.set("cache-control", "public, max-age=0, must-revalidate");
+  headers.set("vercel-cdn-cache-control", "public, s-maxage=86400, stale-while-revalidate=604800");
+  headers.set("vercel-cache-tag", shopCacheTag(ctx.site.shop.id));
 }
+
+/** The CDN cache tag for every page of one shop's site. */
+export const shopCacheTag = (shopId: string) => `shop-${shopId}`;

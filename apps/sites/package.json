@@ -15,6 +15,7 @@
     "@astrojs/vercel": "11.0.11",
     "@lineup/site-kit": "workspace:*",
     "@tailwindcss/vite": "4.3.3",
+    "@vercel/functions": "^3.9.9",
     "astro": "7.3.5",
     "tailwindcss": "4.3.3"
   },

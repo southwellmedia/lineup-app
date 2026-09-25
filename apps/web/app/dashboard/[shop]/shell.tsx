@@ -12,6 +12,7 @@ import {
   LoaderCircle,
   ListOrdered,
   LogOut,
+  Megaphone,
   Scissors,
   Settings,
   ShieldCheck,
@@ -86,6 +87,7 @@ export function Shell(props: {
             label: "Grow",
             items: [
               { href: `${base}/website`, label: "Website", icon: Globe },
+              ...planned("social", Megaphone),
               ...planned("ai-agents", Sparkles),
             ],
           },

@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { pageContext } from "../../lib/page";
+import { pageContext, shopCacheTag } from "../../lib/page";
 
 /** Every public page of the shop's site, for search engines. */
 export const GET: APIRoute = async ({ params, url, locals }) => {
@@ -20,7 +20,9 @@ ${paths.map((p) => `  <url><loc>${escape(ctx.canonical(p))}</loc></url>`).join("
   return new Response(xml, {
     headers: {
       "content-type": "application/xml; charset=utf-8",
-      "cache-control": "public, s-maxage=3600",
+      "cache-control": "public, max-age=0, must-revalidate",
+      "vercel-cdn-cache-control": "public, s-maxage=86400",
+      "vercel-cache-tag": shopCacheTag(ctx.site.shop.id),
     },
   });
 };
